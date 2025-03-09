@@ -68,27 +68,15 @@ const AppsPart = () => {
 
             <li className="sidebar-dropdown-item">
               <NavLink to="/allSales" className="sidebar-link" onClick={handleSubNavLinkClick}>
-                Collection plan A
+                transaction reports
               </NavLink>
             </li>
   
             <li className="sidebar-dropdown-item">
               <NavLink to="/allPurchase" className="sidebar-link" onClick={handleSubNavLinkClick}>
-                ColleCtion plan B
+                planwise reports
               </NavLink>
             </li>
-            <li className="sidebar-dropdown-item">
-              <NavLink to="/allSales" className="sidebar-link" onClick={handleSubNavLinkClick}>
-                Collection plan C
-              </NavLink>
-            </li>
-  
-            <li className="sidebar-dropdown-item">
-              <NavLink to="/allPurchase" className="sidebar-link" onClick={handleSubNavLinkClick}>
-                ColleCtion plan D
-              </NavLink>
-            </li>
-
           </ul>
         </li>     
 
