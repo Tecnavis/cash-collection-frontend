@@ -28,14 +28,14 @@ const EditProfileMainContent = () => {
                             className="btn-box d-flex flex-wrap gap-1"
                         >
                         <Nav.Item>
-                        {/* <Nav.Link
+                        <Nav.Link
                             eventKey="edit"
                             className={`btn btn-sm btn-outline-primary ${
                             activeTab === 'edit' ? 'active' : ''
                             }`}
                         >
                            Edit Profile
-                        </Nav.Link> */}
+                        </Nav.Link>
                         </Nav.Item>
                         <Nav.Item>
                         <Nav.Link
@@ -48,10 +48,18 @@ const EditProfileMainContent = () => {
                         </Nav.Link>
                         </Nav.Item>
                         <Nav.Item>
+                        {/* <Nav.Link
+                            eventKey="other"
+                            className={`btn btn-sm btn-outline-primary ${
+                            activeTab === 'other' ? 'active' : ''
+                            }`}
+                        >
+                           Other Settings
+                        </Nav.Link> */}
                         </Nav.Item>
                         </Nav>
                     </div>
-                    {/* <div className="panel-body">
+                    <div className="panel-body">
                         <Tab.Content className="profile-edit-tab">
                             <Tab.Pane eventKey="edit" className={`tab-pane ${activeTab === 'edit' ? 'show active' : ''}`}>
                                 <EditProfileContent/>
@@ -59,12 +67,15 @@ const EditProfileMainContent = () => {
                             <Tab.Pane eventKey="change" className={`tab-pane ${activeTab === 'change' ? 'show active' : ''}`}>
                                 <ChangePasswordContent/>
                             </Tab.Pane>
-                            
+                            {/* <Tab.Pane eventKey="other" className={`tab-pane ${activeTab === 'other' ? 'show active' : ''}`}>
+                                <OtherSettingsContent/>
+                            </Tab.Pane> */}
                         </Tab.Content>
-                    </div> */}
+                    </div>
                 </div>
             </div>
         </div>
+
         <Footer/>
     </div>
   )

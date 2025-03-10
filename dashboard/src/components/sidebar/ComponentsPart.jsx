@@ -38,13 +38,13 @@ const ComponentsPart = () => {
 
   return (
     <li className="sidebar-item" ref={isExpanded || isNavExpanded.isSmall || layoutPosition.horizontal || (layoutPosition.twoColumn && isExpanded) || (layoutPosition.twoColumn && isSmallScreen) ? mainComponentRef : null}>
-    {/* <Link
+    <Link
       role="button"
       className={`sidebar-link-group-title has-sub ${isMainDropdownOpen ? 'show' : ''}`}
       onClick={toggleComponentMainDropdown}
     >
       Components
-    </Link> */}
+    </Link>
     <ul className={`sidebar-link-group ${layoutPosition.horizontal ? (dropdownOpen.component ? 'd-block' : '') : (isMainDropdownOpen ? 'd-none' : '')}`}>       
       <li className="sidebar-dropdown-item">
         {/* <Link
@@ -80,7 +80,7 @@ const ComponentsPart = () => {
             </li>
           </ul> */}
         </li>
-        {/* <li className="sidebar-dropdown-item">
+        <li className="sidebar-dropdown-item">
           <NavLink to="/form" className="sidebar-link">
             <span className="nav-icon">
               <i className="fa-light fa-memo-pad"></i>
@@ -89,21 +89,26 @@ const ComponentsPart = () => {
           </NavLink>
         </li>
         <li className="sidebar-dropdown-item">
+            <NavLink to="/sweetAlert" className="sidebar-link" onClick={handleSubNavLinkClick}>
+              Sweet Alert
+            </NavLink>
+          </li>
+        <li className="sidebar-dropdown-item">
           <NavLink to="/table" className="sidebar-link">
             <span className="nav-icon">
               <i className="fa-light fa-table"></i>
             </span>{' '}
             <span className="sidebar-txt">Tables</span>
           </NavLink>
-        </li> */}
-        {/* <li className="sidebar-dropdown-item">
+        </li> 
+        <li className="sidebar-dropdown-item">
           <NavLink to="/charts" className="sidebar-link">
             <span className="nav-icon">
               <i className="fa-light fa-chart-simple"></i>
             </span>{' '}
             <span className="sidebar-txt">Charts</span>
           </NavLink>
-        </li> */}
+        </li>
         {/* <li className="sidebar-dropdown-item">
           <NavLink to="/icon" className="sidebar-link">
             <span className="nav-icon">
