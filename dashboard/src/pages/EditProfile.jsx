@@ -67,9 +67,6 @@ const EditProfileMainContent = () => {
                             <Tab.Pane eventKey="change" className={`tab-pane ${activeTab === 'change' ? 'show active' : ''}`}>
                                 <ChangePasswordContent/>
                             </Tab.Pane>
-                            {/* <Tab.Pane eventKey="other" className={`tab-pane ${activeTab === 'other' ? 'show active' : ''}`}>
-                                <OtherSettingsContent/>
-                            </Tab.Pane> */}
                         </Tab.Content>
                     </div>
                 </div>
@@ -82,3 +79,4 @@ const EditProfileMainContent = () => {
 }
 
 export default EditProfileMainContent
+

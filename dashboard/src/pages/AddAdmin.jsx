@@ -9,7 +9,7 @@ import { BASE_URL } from "../api";
 const AddAdmin = () => {
 
     const [formData, setFormData] = useState({
-        employee_id: '',
+        
         username: '',
         email: '',
         contact_number: '',
@@ -44,7 +44,7 @@ const AddAdmin = () => {
 
             setMessage('Admin user created successfully!');
             setFormData({
-                employee_id: '',
+                
                 username: '',
                 email: '',
                 contact_number: '',
@@ -70,7 +70,7 @@ const AddAdmin = () => {
                         <div className="panel-body">
                             <form onSubmit={handleSubmit}>
                                 <div className="row g-3">
-                                    <div className="col-xxl-3 col-lg-4 col-sm-6">
+                                    {/* <div className="col-xxl-3 col-lg-4 col-sm-6">
                                         <label className="form-label">Employee ID</label>
                                         <input
                                             type="text"
@@ -80,7 +80,7 @@ const AddAdmin = () => {
                                             onChange={handleChange}
                                             required
                                         />
-                                    </div>
+                                    </div> */}
                                     <div className="col-xxl-3 col-lg-4 col-sm-6">
                                         <label className="form-label">Name</label>
                                         <input

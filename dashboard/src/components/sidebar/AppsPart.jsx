@@ -102,10 +102,10 @@ const AppsPart = () => {
             <li className="sidebar-dropdown-item"><NavLink to="/allCustomer" className="sidebar-link">Customer</NavLink></li>
             <li className="sidebar-dropdown-item"><NavLink to="/supplier" className="sidebar-link">Agents</NavLink></li>
             {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && (
-              <li className="sidebar-dropdown-item"><NavLink to="/allEmployee" className="sidebar-link">Accountants</NavLink></li>
+              <li className="sidebar-dropdown-item"><NavLink to="/allEmployee" className="sidebar-link">Admins</NavLink></li>
             )}
             {userRole === "SUPER_ADMIN" && (
-              <li className="sidebar-dropdown-item"><NavLink to="/allAdmin" className="sidebar-link">Admins</NavLink></li>
+              <li className="sidebar-dropdown-item"><NavLink to="/allAdmin" className="sidebar-link">Main Admins</NavLink></li>
             )}
           </ul>
         </li>
