@@ -22,7 +22,7 @@ const DashboardPart = () => {
             <span className="nav-icon">
               <i className="fa-light fa-cart-shopping-fast"></i>
             </span>{' '}
-            <span className="sidebar-txt">eCommerce</span>
+            <span className="sidebar-txt">Admin</span>
           </NavLink>
         </li>
         <li className="sidebar-dropdown-item">
@@ -33,7 +33,7 @@ const DashboardPart = () => {
             <span className="nav-icon">
               <i className="fa-light fa-user-headset"></i>
             </span>{' '}
-            <span className="sidebar-txt">Inventory</span>
+            <span className="sidebar-txt">Accountant</span>
           </NavLink>
         </li>
         <li className="sidebar-dropdown-item">
@@ -44,7 +44,7 @@ const DashboardPart = () => {
             <span className="nav-icon">
               <i className="fa-light fa-user-tie"></i>
             </span>{' '}
-            <span className="sidebar-txt">HRM</span>
+            <span className="sidebar-txt">Agent</span>
           </NavLink>
         </li>
       </ul>
