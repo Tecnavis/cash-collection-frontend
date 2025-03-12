@@ -7,7 +7,7 @@ const CategoryMainContent = () => {
   return (
     <div className="main-content">
         <div className="dashboard-breadcrumb dashboard-panel-header mb-30">
-            <h2>Categories</h2>
+            <h2>Schemes</h2>
         </div>
         <div className="row g-4">
             <AddNewCategory/>

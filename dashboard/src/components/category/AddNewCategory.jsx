@@ -1,17 +1,18 @@
-import React, { useCallback, useState } from 'react';
-import { useDropzone } from 'react-dropzone';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { BASE_URL } from "../../api";
 
-const AddNewCategory = () => {
-    const [categoryData, setCategoryData] = useState({
+const AddNewScheme = () => {
+    const [schemeData, setSchemeData] = useState({
+        scheme_number: '',
         name: '',
-        description: '',
-        is_active: true
+        total_amount: '',
+        collection_frequency: '',
+        installment_amount: '',
+        start_date: '',
+        end_date: ''
     });
 
-    const [thumbnail, setThumbnail] = useState(null);
-    const [showThumbnail, setShowThumbnail] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
@@ -19,24 +20,11 @@ const AddNewCategory = () => {
     // Handle input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setCategoryData(prevState => ({
+        setSchemeData(prevState => ({
             ...prevState,
             [name]: value
         }));
     };
-
-    // Handle thumbnail upload
-    const onDropSingle = useCallback((acceptedFiles) => {
-        if (acceptedFiles.length > 0) {
-            setThumbnail(acceptedFiles[0]);
-        }
-    }, []);
-
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        onDrop: onDropSingle,
-        accept: 'image/*',
-        maxFiles: 1
-    });
 
     // Handle form submission
     const handleSubmit = async (e) => {
@@ -46,24 +34,24 @@ const AddNewCategory = () => {
         setSuccess(false);
 
         try {
-            const formData = new FormData();
-            formData.append('name', categoryData.name);
-            formData.append('description', categoryData.description);
-            formData.append('is_active', categoryData.is_active);
-            if (thumbnail) {
-                formData.append('thumbnail', thumbnail);
-            }
             const response = await axios.post(
-                `${BASE_URL}/services/categories/create/`, 
-                formData,
-                { headers: { 'Content-Type': 'multipart/form-data' } }
+                `${BASE_URL}/services/schemes/create/`, 
+                schemeData,
+                { headers: { 'Content-Type': 'application/json' } }
             );
 
             setSuccess(true);
-            setCategoryData({ name: '', description: '', is_active: true });
-            setThumbnail(null);
+            setSchemeData({
+                scheme_number: '',
+                name: '',
+                total_amount: '',
+                collection_frequency: '',
+                installment_amount: '',
+                start_date: '',
+                end_date: ''
+            });
         } catch (err) {
-            setError('Failed to create category. Please try again.');
+            setError('Failed to create scheme. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -73,70 +61,103 @@ const AddNewCategory = () => {
         <div className="col-xxl-4 col-md-5">
             <div className="panel">
                 <div className="panel-header">
-                    <h5>Add New Category</h5>
+                    <h5>Add New Scheme</h5>
                 </div>
                 <div className="panel-body">
                     <form onSubmit={handleSubmit}>
                         <div className="row g-3">
                             <div className="col-12">
-                                <label className="form-label">Category Name</label>
+                                <label className="form-label"> Number</label>
                                 <input 
                                     type="text" 
                                     className="form-control form-control-sm"
-                                    name="name"
-                                    value={categoryData.name}
+                                    name="scheme_number"
+                                    value={schemeData.scheme_number}
                                     onChange={handleChange}
                                     required 
                                 />
                             </div>
                             <div className="col-12">
-                                <label className="form-label">Description</label>
-                                <textarea 
-                                    rows="5" 
+                                <label className="form-label"> Name</label>
+                                <input 
+                                    type="text" 
                                     className="form-control form-control-sm"
-                                    name="description"
-                                    value={categoryData.description}
+                                    name="name"
+                                    value={schemeData.name}
                                     onChange={handleChange}
-                                    required
-                                ></textarea>
+                                    required 
+                                />
                             </div>
-                            {/* <div className="col-12">
-                                <div className="upload-category-thumbnail">
-                                    <label className="form-label mb-0" role='button' onClick={() => setShowThumbnail(!showThumbnail)}>
-                                        Add Category Thumbnail
-                                    </label>
-                                    <div {...getRootProps()} className={`${showThumbnail ? '' : 'd-none'}`}>
-                                        <input {...getInputProps()} />
-                                        <div className="jquery-uploader">
-                                            <div className="jquery-uploader-preview-container">
-                                                <div className="jquery-uploader-select-card">
-                                                    <div className="jquery-uploader-select">
-                                                        <div className="upload-button">
-                                                            <i className="fa fa-plus"></i><br />
-                                                            <a>Upload</a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {thumbnail && <p>{thumbnail.name}</p>}
-                                    </div>
-                                </div>
-                            </div> */}
+                            <div className="col-12">
+                                <label className="form-label">Total Amount</label>
+                                <input 
+                                    type="number" 
+                                    className="form-control form-control-sm"
+                                    name="total_amount"
+                                    value={schemeData.total_amount}
+                                    onChange={handleChange}
+                                    required 
+                                />
+                            </div>
+                            <div className="col-12">
+                                <label className="form-label">Collection Frequency</label>
+                                <select 
+                                    className="form-control form-control-sm"
+                                    name="collection_frequency"
+                                    value={schemeData.collection_frequency}
+                                    onChange={handleChange}
+                                >
+                                    <option value="">Select Frequency</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                            <div className="col-12">
+                                <label className="form-label">Installment Amount</label>
+                                <input 
+                                    type="number" 
+                                    className="form-control form-control-sm"
+                                    name="installment_amount"
+                                    value={schemeData.installment_amount}
+                                    onChange={handleChange}
+                                />
+                            </div>
+                            <div className="col-12">
+                                <label className="form-label">Start Date</label>
+                                <input 
+                                    type="date" 
+                                    className="form-control form-control-sm"
+                                    name="start_date"
+                                    value={schemeData.start_date}
+                                    onChange={handleChange}
+                                    required 
+                                />
+                            </div>
+                            <div className="col-12">
+                                <label className="form-label">End Date</label>
+                                <input 
+                                    type="date" 
+                                    className="form-control form-control-sm"
+                                    name="end_date"
+                                    value={schemeData.end_date}
+                                    onChange={handleChange}
+                                    required 
+                                />
+                            </div>
                             <div className="col-12 d-flex justify-content-end">
                                 <button className="btn btn-sm btn-primary" type="submit" disabled={loading}>
-                                    {loading ? 'Saving...' : 'Save Category'}
+                                    {loading ? 'Saving...' : 'Save Scheme'}
                                 </button>
                             </div>
                         </div>
                     </form>
                     {error && <p className="text-danger mt-2">{error}</p>}
-                    {success && <p className="text-success mt-2">Category added successfully!</p>}
+                    {success && <p className="text-success mt-2">Scheme added successfully!</p>}
                 </div>
             </div>
         </div>
     );
 };
 
-export default AddNewCategory;
-
+export default AddNewScheme;
