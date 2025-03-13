@@ -50,7 +50,7 @@ const AllSchemes = () => {
         <div className="col-xxl-8 col-md-7">
             <div className="panel">
                 <div className="panel-header d-flex justify-content-between align-items-center">
-                    <h5>All Schemes</h5>
+                    <h5>All Scheme BY customer</h5>
                     <div className="btn-box d-flex gap-2">
                         <Form.Control 
                             type="text" 

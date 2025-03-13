@@ -12,6 +12,7 @@ const AppsPart = () => {
     isHrmDropdownOpen: false,
     isAccountsDropdownOpen: false,
     isEcommerceDropdownOpen: false,
+    isSchemeDropdownOpen: false,
     isSubDropdownOpen: false
   });
 
@@ -53,7 +54,7 @@ const AppsPart = () => {
           </ul>
         </li>
 
-        {/* eCommerce */}
+        {/*   scheme */}
         <li className="sidebar-dropdown-item">
           <Link
             role="button"
@@ -69,6 +70,24 @@ const AppsPart = () => {
             </li>
           </ul>
         </li>
+
+         {/* scheme by customer */}
+         <li className="sidebar-dropdown-item">
+          <Link
+            role="button"
+            className={`sidebar-link has-sub ${dropdownState.isSchemeDropdownOpen ? 'show' : ''}`}
+            onClick={() => toggleDropdown("isSchemeDropdownOpen")}
+          >
+            <span className="nav-icon"><i className="fa-light fa-cart-shopping-fast"></i></span>
+            <span className="sidebar-txt">SchemeByCustomer</span>
+          </Link>
+          <ul className={`sidebar-dropdown-menu ${dropdownState.isSchemeDropdownOpen ? 'd-block' : 'd-none'}`}>
+            <li className="sidebar-dropdown-item">
+              <NavLink to="/category" className="sidebar-link">Schemes</NavLink>
+            </li>
+          </ul>
+        </li>
+
 
         {/* Collection Scheme */}
         <li className="sidebar-dropdown-item">

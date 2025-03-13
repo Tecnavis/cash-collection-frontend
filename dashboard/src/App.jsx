@@ -25,6 +25,7 @@ import AllProduct from "./pages/AllProduct"
 import AllSales from "./pages/AllSales"
 import AllPurchase from "./pages/AllPurchase"
 import Category from "./pages/Category"
+import SchemeByCustomer from "./pages/SchemeByCustomer"
 import Invoices from "./pages/Invoices"
 import Login from "./pages/Login"
 import Login2 from "./pages/Login2"
@@ -74,6 +75,7 @@ function App() {
             <Route path="/charts" element={<Charts/>}/>
             <Route path="/profile" element={<Profile/>}/>
             <Route path="/editProfile" element={<EditProfile/>}/>
+            <Route path="/customerscheme" element={<SchemeByCustomer />} />
 
 
 
