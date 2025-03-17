@@ -83,7 +83,7 @@ const AppsPart = () => {
           </Link>
           <ul className={`sidebar-dropdown-menu ${dropdownState.isSchemeDropdownOpen ? 'd-block' : 'd-none'}`}>
             <li className="sidebar-dropdown-item">
-              <NavLink to="/category" className="sidebar-link">Schemes</NavLink>
+              <NavLink to="/customerscheme" className="sidebar-link">Schemes</NavLink>
             </li>
           </ul>
         </li>

@@ -79,6 +79,7 @@ function App() {
 
             <Route path="/allProduct" element={<AllProduct />} />   
             <Route path="/category" element={<Category />} />
+            {/* <Route path="/schemecustomer" element={<SchemeByCustomer />} /> */}
             <Route path="/addNewProduct" element={<AddNewProduct />} />
             <Route path="/purchaseditem" element={<Customer />} />
 
