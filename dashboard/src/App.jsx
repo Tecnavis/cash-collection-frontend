@@ -77,8 +77,6 @@ function App() {
             <Route path="/editProfile" element={<EditProfile/>}/>
             <Route path="/customerscheme" element={<SchemeByCustomer />} />
 
-
-
             <Route path="/allProduct" element={<AllProduct />} />   
             <Route path="/category" element={<Category />} />
             <Route path="/addNewProduct" element={<AddNewProduct />} />
@@ -103,7 +101,6 @@ function App() {
 
             <Route path="/invoice/:id" element={<Invoices />} />
             <Route path="/profile" element={<Profile/>}/>
-            {/* <Route path="/editProfile" element={<EditProfile/>}/> */}
           </Route>
         </Route>        
       </Routes>

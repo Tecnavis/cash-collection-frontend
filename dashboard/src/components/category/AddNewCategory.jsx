@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { BASE_URL } from "../../api";
+import Cookies from 'js-cookie';
 
 const AddNewScheme = () => {
     const [schemeData, setSchemeData] = useState({
@@ -34,11 +35,12 @@ const AddNewScheme = () => {
         setSuccess(false);
 
         try {
-            const response = await axios.post(
-                `${BASE_URL}/services/schemes/create/`, 
-                schemeData,
-                { headers: { 'Content-Type': 'application/json' } }
-            );
+            await axios.post(`${BASE_URL}/cashcollection/schemes/create/`, schemeData, {
+                headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${Cookies.get("access_token")}`,
+                },
+        });
 
             setSuccess(true);
             setSchemeData({

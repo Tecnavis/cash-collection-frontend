@@ -3,7 +3,7 @@ import { Form } from 'react-bootstrap';
 import axios from 'axios';
 import { BASE_URL } from '../../api';
 import { DigiContext } from '../../context/DigiContext';
-
+import Cookies from 'js-cookie';
 const AllSchemes = () => {
     const { headerBtnOpen, handleHeaderBtn, handleHeaderReset, headerRef } = useContext(DigiContext);
     const [schemes, setSchemes] = useState([]);
@@ -25,12 +25,19 @@ const AllSchemes = () => {
 
     const fetchSchemes = async () => {
         try {
-            const response = await axios.get(`${BASE_URL}/services/schemes/`);
+            const token = Cookies.get("access_token");  
+            const response = await axios.get(`${BASE_URL}/cashcollection/schemes/`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                }
+            });
             setSchemes(response.data);
         } catch (error) {
-            console.error('Error fetching schemes:', error);
+            console.error("Error fetching schemes:", error);
         }
     };
+    
 
     const handleChange = (e) => {
         const { id } = e.target;
@@ -124,5 +131,4 @@ const AllSchemes = () => {
         </div>
     );
 };
-
 export default AllSchemes;
