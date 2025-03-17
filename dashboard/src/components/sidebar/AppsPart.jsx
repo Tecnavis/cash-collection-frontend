@@ -83,7 +83,7 @@ const AppsPart = () => {
           </Link>
           <ul className={`sidebar-dropdown-menu ${dropdownState.isSchemeDropdownOpen ? 'd-block' : 'd-none'}`}>
             <li className="sidebar-dropdown-item">
-              <NavLink to="/customerscheme" className="sidebar-link">Schemes</NavLink>
+              <NavLink to="/customerscheme" className="sidebar-link">Schemes By Customer</NavLink>
             </li>
           </ul>
         </li>
@@ -100,10 +100,7 @@ const AppsPart = () => {
             <span className="sidebar-txt">Collections</span>
           </Link>
           <ul className={`sidebar-dropdown-menu ${dropdownState.isCrmCollectionDropdownOpen ? 'd-block' : 'd-none'}`}>
-            <li className="sidebar-dropdown-item"><NavLink to="/collectionA" className="sidebar-link">Collection Plan A</NavLink></li>
-            <li className="sidebar-dropdown-item"><NavLink to="/collectionB" className="sidebar-link">Collection Plan B</NavLink></li>
-            <li className="sidebar-dropdown-item"><NavLink to="/collectionC" className="sidebar-link">Collection Plan C</NavLink></li>
-            <li className="sidebar-dropdown-item"><NavLink to="/collectionD" className="sidebar-link">Collection Plan D</NavLink></li>
+            <li className="sidebar-dropdown-item"><NavLink to="/collectionplan" className="sidebar-link">Collection Plan A</NavLink></li>
           </ul>
         </li>
 

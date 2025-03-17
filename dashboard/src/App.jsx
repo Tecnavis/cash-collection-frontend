@@ -36,6 +36,7 @@ import PublicLayout from "./components/layout/PublicLayout"
 import { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import ProtectedRoute from '../src/protectedroute/ProtectedRoute';
+import AddCollectionPlan from "./pages/AddCollectionPlan"
 
 
 function App() {
@@ -77,6 +78,10 @@ function App() {
             <Route path="/editProfile" element={<EditProfile/>}/>
             <Route path="/customerscheme" element={<SchemeByCustomer />} />
 
+            <Route path="/collectionplan" element={<AddCollectionPlan />} />
+            <Route path="/addPartner" element={<AddPartner />} />
+
+
             <Route path="/allProduct" element={<AllProduct />} />   
             <Route path="/category" element={<Category />} />
             {/* <Route path="/schemecustomer" element={<SchemeByCustomer />} /> */}
@@ -95,7 +100,7 @@ function App() {
             <Route path="/addEmployee" element={<AddEmployee />} />
             <Route path="/allEmployee" element={<AllEmployee />} />
 
-            <Route path="/addPartner" element={<AddPartner />} />
+            {/* <Route path="/addPartner" element={<AddPartner />} /> */}
 
             <Route path="/addAdmin" element={<AddAdmin />} />
             <Route path="/allAdmin" element={<AllAdmin />} />
