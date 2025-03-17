@@ -3,8 +3,8 @@ import Cookies from "js-cookie";
 
 
 export const BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://api.neo2.tecnavis.com/api/v1";
-  // import.meta.env.VITE_API_BASE_URL || " http://127.0.0.1:8000/api/v1";
+  // import.meta.env.VITE_API_BASE_URL || "https://api.neo2.tecnavis.com/api/v1";
+  import.meta.env.VITE_API_BASE_URL || " http://127.0.0.1:8000/api/v1";
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -31,8 +31,6 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      // console.log("Access token expired, attempting refresh...");
-
       const refreshToken = Cookies.get("refresh_token");
       if (!refreshToken) {
         console.log("No refresh token found, logging out...");

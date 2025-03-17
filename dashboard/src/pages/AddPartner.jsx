@@ -7,14 +7,15 @@ import Cookies from "js-cookie";
 
 const AddPartner = () => {
   const [formData, setFormData] = useState({
+    username: "",
+    password: "", // Added password
     first_name: "",
     last_name: "",
     email: "",
     contact_number: "",
-    alternative_contact: "",
+    secondary_contact: "",
     address: "",
     other_info: "",
-    partner_type: "customer",
   });
 
   const [loading, setLoading] = useState(false);
@@ -24,10 +25,11 @@ const AddPartner = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const breadcrumbLink = formData.partner_type === "vendor" ? "/supplier" : "/allCustomer";
+  const breadcrumbLink =
+    formData.partner_type === "vendor" ? "/supplier" : "/allCustomer";
 
   const validateForm = () => {
-    const { email, contact_number, alternative_contact } = formData;
+    const { email, contact_number, password } = formData;
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const phoneRegex = /^[0-9]{10,15}$/;
 
@@ -35,7 +37,11 @@ const AddPartner = () => {
       setMessage("Invalid email format.");
       return false;
     }
-    if (!phoneRegex.test(contact_number) || !phoneRegex.test(alternative_contact)) {
+    if (!password || password.length < 6) {
+      setMessage("Password must be at least 6 characters long.");
+      return false;
+    }
+    if (!phoneRegex.test(contact_number)) {
       setMessage("Phone number must be 10-15 digits.");
       return false;
     }
@@ -60,19 +66,22 @@ const AddPartner = () => {
 
       setMessage("User profile created successfully!");
       setFormData({
+        username: "",
+        password: "",
         first_name: "",
         last_name: "",
         email: "",
         contact_number: "",
-        alternative_contact: "",
+        secondary_contact: "",
         address: "",
         other_info: "",
-        partner_type: "customer",
       });
 
       setTimeout(() => setMessage(""), 5000);
     } catch (error) {
-      setMessage(error.response?.data?.message || "Error creating user profile.");
+      setMessage(
+        error.response?.data?.message || "Error creating user profile."
+      );
       console.error("API Error:", error.response?.data);
     } finally {
       setLoading(false);
@@ -92,6 +101,30 @@ const AddPartner = () => {
               <form onSubmit={handleSubmit}>
                 <div className="row g-3">
                   <div className="col-xxl-3 col-lg-4 col-sm-6">
+                    <label className="form-label">Username</label>
+                    <input
+                      type="text"
+                      name="username"
+                      className="form-control form-control-sm"
+                      value={formData.username}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-xxl-3 col-lg-4 col-sm-6">
+                    <label className="form-label">Password</label>
+                    <input
+                      type="password"
+                      name="password"
+                      className="form-control form-control-sm"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-xxl-3 col-lg-4 col-sm-6">
                     <label className="form-label">First Name</label>
                     <input
                       type="text"
@@ -102,6 +135,7 @@ const AddPartner = () => {
                       required
                     />
                   </div>
+
                   <div className="col-xxl-3 col-lg-4 col-sm-6">
                     <label className="form-label">Last Name</label>
                     <input
@@ -113,6 +147,7 @@ const AddPartner = () => {
                       required
                     />
                   </div>
+
                   <div className="col-xxl-3 col-lg-4 col-sm-6">
                     <label className="form-label">Email</label>
                     <input
@@ -124,6 +159,7 @@ const AddPartner = () => {
                       required
                     />
                   </div>
+
                   <div className="col-xxl-3 col-lg-4 col-sm-6">
                     <label className="form-label">Contact Number</label>
                     <input
@@ -135,8 +171,8 @@ const AddPartner = () => {
                       required
                     />
                   </div>
-                   {/* Secondary Contact */}
-                   <div className="col-xxl-3 col-lg-4 col-sm-6">
+
+                  <div className="col-xxl-3 col-lg-4 col-sm-6">
                     <label className="form-label">Secondary Contact</label>
                     <input
                       type="tel"
@@ -146,17 +182,7 @@ const AddPartner = () => {
                       onChange={handleChange}
                     />
                   </div>
-                  {/* <div className="col-xxl-3 col-lg-4 col-sm-6">
-                    <label className="form-label">Alternative Contact</label>
-                    <input
-                      type="tel"
-                      name="alternative_contact"
-                      className="form-control form-control-sm"
-                      value={formData.alternative_contact}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div> */}
+
                   <div className="col-xxl-3 col-lg-4 col-sm-6">
                     <label className="form-label">Address</label>
                     <textarea
@@ -166,6 +192,7 @@ const AddPartner = () => {
                       onChange={handleChange}
                     />
                   </div>
+
                   <div className="col-xxl-3 col-lg-4 col-sm-6">
                     <label className="form-label">Other Info</label>
                     <textarea
@@ -175,26 +202,19 @@ const AddPartner = () => {
                       onChange={handleChange}
                     />
                   </div>
-                  {/* <div className="col-xxl-3 col-lg-4 col-sm-6">
-                    <label className="form-label">Role</label>
-                    <select
-                      name="partner_type"
-                      className="form-control form-control-sm"
-                      value={formData.partner_type}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="customer">Customer</option>
-                      <option value="vendor">Vendor</option>
-                    </select>
-                  </div> */}
                 </div>
+
                 <div className="mt-3">
-                  <button type="submit" className="btn btn-primary" disabled={loading}>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={loading}
+                  >
                     {loading ? "Creating..." : "Create Partner"}
                   </button>
                 </div>
               </form>
+
               {message && <p className="mt-2 text-info">{message}</p>}
             </div>
           </div>
