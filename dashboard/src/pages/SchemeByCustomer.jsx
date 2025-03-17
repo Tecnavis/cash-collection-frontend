@@ -13,7 +13,7 @@ const CategoryMainContent = () => {
         </div>
         <div className="row g-4">
           <AddCustomerScheme/>
-          <AllCustomerSchemes/>
+          {/* <AllCustomerSchemes/> */}
         </div>
 
         <Footer/>
