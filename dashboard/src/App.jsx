@@ -37,7 +37,8 @@ import { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import ProtectedRoute from '../src/protectedroute/ProtectedRoute';
 import AddCollectionPlan from "./pages/AddCollectionPlan"
-
+import AllCollections from "./pages/AllCollections"
+import AllCollectionCustomer from "./pages/AllCollectionCustomer"
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!Cookies.get('access_token'));
@@ -65,7 +66,8 @@ function App() {
               <Route path="/registration" element={<Registration />} />
               <Route path="/" element={<Login2 setIsAuthenticated={setIsAuthenticated} />} />
               <Route path="/login" element={<Login/>}/>
-          </Route>        
+          </Route> 
+                 
           <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
           <Route element={<Layout />}>
             <Route path="/dash" element={<Dashboard/>}/>
@@ -79,29 +81,33 @@ function App() {
             <Route path="/customerscheme" element={<SchemeByCustomer />} />
 
             <Route path="/collectionplan" element={<AddCollectionPlan />} />
-            <Route path="/addPartner" element={<AddPartner />} />
-
+           
 
             <Route path="/allProduct" element={<AllProduct />} />   
             <Route path="/category" element={<Category />} />
-            {/* <Route path="/schemecustomer" element={<SchemeByCustomer />} /> */}
+
             <Route path="/addNewProduct" element={<AddNewProduct />} />
             <Route path="/purchaseditem" element={<Customer />} />
 
             <Route path="/allSales" element={<AllSales />} />
             <Route path="/addSales" element={<AddSales />} />
+            <Route path="/collections" element={<AllCollections />} />
 
             <Route path="/allpurchase" element={<AllPurchase />} />
             <Route path="/addPurchase" element={<AddPurchase />} />
-
+            {/*agent*/}
             <Route path="/allCustomer" element={<AllCustomer />} />
-            <Route path="/supplier" element={<Company />} />
+            <Route path="/addPartner" element={<AddPartner />} />
 
-            <Route path="/addEmployee" element={<AddEmployee />} />
+             {/*customer  */}
+            <Route path="/supplier" element={<Company />} />
+            <Route path="/allCollectionCustomer" element={< AllCollectionCustomer />} />
+
+            {/*main admin  */}
+            <Route path="/addEmployee" element={<AddEmployee />} /> 
             <Route path="/allEmployee" element={<AllEmployee />} />
 
-            {/* <Route path="/addPartner" element={<AddPartner />} /> */}
-
+            {/* super admins */}
             <Route path="/addAdmin" element={<AddAdmin />} />
             <Route path="/allAdmin" element={<AllAdmin />} />
 

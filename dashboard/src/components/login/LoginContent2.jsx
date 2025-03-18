@@ -20,45 +20,96 @@ const LoginContent2 = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle login submission
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Fixed typo - removed stray 'A'
+    e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch(`${BASE_URL}/users/login/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });  
-      const data = await response.json();
+        const response = await fetch(`${BASE_URL}/users/login/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+        });
+        const data = await response.json();
 
-      if (response.ok) {
-        // Store tokens in cookies
-        Cookies.set('access_token', data.access_token, { expires: 1 }); 
-        Cookies.set('refresh_token', data.refresh_token, { expires: 7 }); 
-        Cookies.set('user_role', data.role.toUpperCase(), { expires: 1 });
-        
-        // Trigger a custom event to notify the app about authentication change
-        window.dispatchEvent(new Event('auth-change'));
-        
-        // Small delay to ensure cookies are properly set before navigation
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 100);
-      } else {
-        setError(data.detail || 'Invalid login credentials');
-      }
+        if (response.ok) {
+            // Store tokens and role in cookies
+            Cookies.set('access_token', data.access_token, { expires: 1 });
+            Cookies.set('refresh_token', data.refresh_token, { expires: 7 });
+            Cookies.set('user_role', data.role.toUpperCase(), { expires: 1 });
+
+            // Trigger authentication event
+            window.dispatchEvent(new Event('auth-change'));
+
+            // Determine where to navigate based on user role
+            let redirectPath = '/dashboard';  // Default redirect
+
+            if (data.role.toUpperCase() === 'ADMIN') {
+                redirectPath = '/dash';
+            } else if (data.role.toUpperCase() === 'SUOER_ADMIN') {
+                redirectPath = '/dash';
+            } else if (data.role.toUpperCase() === 'STAFF') {
+                redirectPath = '/hrmDashboard';
+            }
+
+            // Small delay to ensure cookies are properly set before navigation
+            setTimeout(() => {
+                navigate(redirectPath);
+            }, 100);
+        } else {
+            setError(data.detail || 'Invalid login credentials');
+        }
     } catch (err) {
-      setError('Something went wrong. Please try again.');
-      console.error("Login error:", err);
+        setError('Something went wrong. Please try again.');
+        console.error("Login error:", err);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
+
+
+  // Handle login submission
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault(); // Fixed typo - removed stray 'A'
+  //   setLoading(true);
+  //   setError('');
+
+  //   try {
+  //     const response = await fetch(`${BASE_URL}/users/login/`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(formData),
+  //     });  
+  //     const data = await response.json();
+
+  //     if (response.ok) {
+  //       // Store tokens in cookies
+  //       Cookies.set('access_token', data.access_token, { expires: 1 }); 
+  //       Cookies.set('refresh_token', data.refresh_token, { expires: 7 }); 
+  //       Cookies.set('user_role', data.role.toUpperCase(), { expires: 1 });
+        
+  //       // Trigger a custom event to notify the app about authentication change
+  //       window.dispatchEvent(new Event('auth-change'));
+        
+  //       // Small delay to ensure cookies are properly set before navigation
+  //       setTimeout(() => {
+  //         navigate('/dashboard');
+  //       }, 100);
+  //     } else {
+  //       setError(data.detail || 'Invalid login credentials');
+  //     }
+  //   } catch (err) {
+  //     setError('Something went wrong. Please try again.');
+  //     console.error("Login error:", err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <div className="main-content login-panel login-panel-2">

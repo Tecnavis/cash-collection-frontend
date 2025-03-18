@@ -17,8 +17,6 @@ const AddNewScheme = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
-
-    // Handle input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
         setSchemeData(prevState => ({
@@ -26,8 +24,6 @@ const AddNewScheme = () => {
             [name]: value
         }));
     };
-
-    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -41,7 +37,6 @@ const AddNewScheme = () => {
                 Authorization: `Bearer ${Cookies.get("access_token")}`,
                 },
         });
-
             setSuccess(true);
             setSchemeData({
                 scheme_number: '',
@@ -58,7 +53,6 @@ const AddNewScheme = () => {
             setLoading(false);
         }
     };
-
     return (
         <div className="col-xxl-4 col-md-5">
             <div className="panel">

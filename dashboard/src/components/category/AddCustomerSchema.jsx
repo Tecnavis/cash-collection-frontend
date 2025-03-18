@@ -8,19 +8,20 @@
 //         scheme: "",
 //         start_date: "",
 //         end_date: "",
-//         customer: "",
+//         customer: "",  
 //     });
-
+    
 //     const [schemes, setSchemes] = useState([]);
-//     const [customer, setCustomer] = useState([]);
+//     const [customers, setCustomers] = useState([]); 
 //     const [loading, setLoading] = useState(false);
 //     const [error, setError] = useState(null);
 //     const [success, setSuccess] = useState(false);
+//     const [selectedScheme, setSelectedScheme] = useState(null);
 
 //     useEffect(() => {
 //         const fetchData = async () => {
 //             try {
-//                 const [schemesRes, customerRes] = await Promise.all([
+//                 const [schemesRes, customersRes] = await Promise.all([  
 //                     axios.get(`${BASE_URL}/cashcollection/schemes/`, {
 //                         headers: { Authorization: `Bearer ${Cookies.get("access_token")}` },
 //                     }),
@@ -29,7 +30,7 @@
 //                     }),
 //                 ]);
 //                 setSchemes(schemesRes.data);
-//                 setCustomers(customersRes.data);
+//                 setCustomers(customersRes.data); 
 //             } catch (err) {
 //                 setError("Failed to load data. Please refresh.");
 //             }
@@ -37,11 +38,25 @@
 //         fetchData();
 //     }, []);
 
-//     // Handle input changes
+   
 //     const handleChange = (e) => {
 //         const { name, value } = e.target;
 //         setFormData((prev) => ({ ...prev, [name]: value }));
 //     };
+
+//     const handleSchemeSelect = (schemeId) => {
+//         const selected = schemes.find(scheme => scheme.id === schemeId);
+//         if (selected) {
+//           setSelectedScheme(selected);
+//           // Update formData with the selected scheme's dates
+//           setFormData({
+//             ...formData,
+//             scheme: schemeId,
+//             start_date: selected.start_date,
+//             end_date: selected.end_date
+//           });
+//         }
+//       };
 
 //     const handleSubmit = async (e) => {
 //         e.preventDefault();
@@ -54,7 +69,6 @@
 //             setLoading(false);
 //             return;
 //         }
-
 //         try {
 //             await axios.post(`${BASE_URL}/cashcollection/cashcollection/create/`, formData, {
 //                 headers: {
@@ -64,16 +78,16 @@
 //             });
 
 //             setSuccess(true);
-//             setFormData({ scheme: "", start_date: "", end_date: "", customers:"" });
+//             setFormData({ scheme: "", start_date: "", end_date: "", customer: "" }); 
 //         } catch (err) {
-//             setError("Failed to create collection. Please try again.");
+//             console.error("Error details:", err.response?.data || err.message);
+//             setError(err.response?.data?.error || "Failed to create collection. Please try again.");
 //         } finally {
 //             setLoading(false);
 //         }
 //     };
-
 //     return (
-//         <div className="col-xxl-5 col-md-6">
+//         <div className="col-xxl-4 col-md-5">
 //             <div className="panel">
 //                 <div className="panel-header">
 //                     <h5>Add New Cash Collection</h5>
@@ -81,7 +95,6 @@
 //                 <div className="panel-body">
 //                     <form onSubmit={handleSubmit}>
 //                         <div className="row g-3">
-//                             {/* Scheme Selection */}
 //                             <div className="col-12">
 //                                 <label className="form-label">Scheme</label>
 //                                 <select
@@ -99,13 +112,12 @@
 //                                     ))}
 //                                 </select>
 //                             </div>
-
 //                             <div className="col-12">
-//                                 <label className="form-label">Customers</label>
+//                                 <label className="form-label">Customer</label>
 //                                 <select
 //                                     className="form-control form-control-sm"
-//                                     name="customers"
-//                                     value={formData.customers}
+//                                     name="customer" 
+//                                     value={formData.customer}  
 //                                     onChange={handleChange}
 //                                     required
 //                                 >
@@ -116,10 +128,7 @@
 //                                         </option>
 //                                     ))}
 //                                 </select>
-
 //                             </div>
-
-//                             {/* Start Date */}
 //                             <div className="col-12">
 //                                 <label className="form-label">Start Date</label>
 //                                 <input
@@ -130,9 +139,29 @@
 //                                     onChange={handleChange}
 //                                     required
 //                                 />
+//                                 </div>
+//                                 <div className="col-12">
+//                                 <label className="form-label">End Date</label>
+//                                 <input
+//                                     type="date"
+//                                     className="form-control form-control-sm"
+//                                     name="end_date"
+//                                     value={formData.end_date}
+//                                     onChange={handleChange}
+//                                     required
+//                                 />
+//                                 </div>
+//                             {/* <div className="col-12">
+//                                 <label className="form-label">Start Date</label>
+//                                 <input
+//                                     type="date"
+//                                     className="form-control form-control-sm"
+//                                     name="start_date"
+//                                     value={formData.start_date}
+//                                     onChange={handleChange}
+//                                     required
+//                                 />
 //                             </div>
-
-//                             {/* End Date */}
 //                             <div className="col-12">
 //                                 <label className="form-label">End Date</label>
 //                                 <input
@@ -143,9 +172,7 @@
 //                                     onChange={handleChange}
 //                                     required
 //                                 />
-//                             </div>
-                            
-//                             {/* Submit Button */}
+//                             </div> */}
 //                             <div className="col-12 d-flex justify-content-end">
 //                                 <button className="btn btn-sm btn-primary" type="submit" disabled={loading}>
 //                                     {loading ? "Saving..." : "Save Collection"}
@@ -153,8 +180,6 @@
 //                             </div>
 //                         </div>
 //                     </form>
-
-//                     {/* Success & Error Messages */}
 //                     {error && <p className="text-danger mt-2">{error}</p>}
 //                     {success && <p className="text-success mt-2">Collection added successfully!</p>}
 //                 </div>
@@ -162,8 +187,8 @@
 //         </div>
 //     );
 // };
-
 // export default AddCashCollection;
+
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
@@ -175,11 +200,11 @@ const AddCashCollection = () => {
         scheme: "",
         start_date: "",
         end_date: "",
-        customer: "",  // Changed from customers to customer
+        customer: "",  
     });
 
     const [schemes, setSchemes] = useState([]);
-    const [customers, setCustomers] = useState([]); // Fixed variable name
+    const [customers, setCustomers] = useState([]); 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
@@ -187,7 +212,7 @@ const AddCashCollection = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [schemesRes, customersRes] = await Promise.all([  // Fixed variable name
+                const [schemesRes, customersRes] = await Promise.all([
                     axios.get(`${BASE_URL}/cashcollection/schemes/`, {
                         headers: { Authorization: `Bearer ${Cookies.get("access_token")}` },
                     }),
@@ -196,7 +221,7 @@ const AddCashCollection = () => {
                     }),
                 ]);
                 setSchemes(schemesRes.data);
-                setCustomers(customersRes.data);  // Fixed variable name
+                setCustomers(customersRes.data);
             } catch (err) {
                 setError("Failed to load data. Please refresh.");
             }
@@ -204,10 +229,24 @@ const AddCashCollection = () => {
         fetchData();
     }, []);
 
-    // Handle input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    // Function to handle scheme selection
+    const handleSchemeSelect = (e) => {
+        const schemeId = parseInt(e.target.value, 10);
+        const selectedScheme = schemes.find(scheme => scheme.id === schemeId);
+
+        if (selectedScheme) {
+            setFormData({
+                ...formData,
+                scheme: schemeId,
+                start_date: selectedScheme.start_date,
+                end_date: selectedScheme.end_date
+            });
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -231,7 +270,7 @@ const AddCashCollection = () => {
             });
 
             setSuccess(true);
-            setFormData({ scheme: "", start_date: "", end_date: "", customer: "" }); // Changed from customers to customer
+            setFormData({ scheme: "", start_date: "", end_date: "", customer: "" });
         } catch (err) {
             console.error("Error details:", err.response?.data || err.message);
             setError(err.response?.data?.error || "Failed to create collection. Please try again.");
@@ -241,7 +280,7 @@ const AddCashCollection = () => {
     };
 
     return (
-        <div className="col-xxl-5 col-md-6">
+        <div className="col-xxl-4 col-md-5">
             <div className="panel">
                 <div className="panel-header">
                     <h5>Add New Cash Collection</h5>
@@ -249,31 +288,29 @@ const AddCashCollection = () => {
                 <div className="panel-body">
                     <form onSubmit={handleSubmit}>
                         <div className="row g-3">
-                            {/* Scheme Selection */}
                             <div className="col-12">
                                 <label className="form-label">Scheme</label>
                                 <select
                                     className="form-control form-control-sm"
                                     name="scheme"
                                     value={formData.scheme}
-                                    onChange={handleChange}
+                                    onChange={handleSchemeSelect}
                                     required
                                 >
                                     <option value="">Select Scheme</option>
                                     {schemes.map((scheme) => (
                                         <option key={scheme.id} value={scheme.id}>
-                                            {scheme.name}
+                                            {scheme.name} (#{scheme.scheme_number})
                                         </option>
                                     ))}
                                 </select>
                             </div>
-
                             <div className="col-12">
                                 <label className="form-label">Customer</label>
                                 <select
                                     className="form-control form-control-sm"
-                                    name="customer"  // Changed from customers to customer
-                                    value={formData.customer}  // Changed from customers to customer
+                                    name="customer" 
+                                    value={formData.customer}  
                                     onChange={handleChange}
                                     required
                                 >
@@ -285,8 +322,6 @@ const AddCashCollection = () => {
                                     ))}
                                 </select>
                             </div>
-
-                            {/* Start Date */}
                             <div className="col-12">
                                 <label className="form-label">Start Date</label>
                                 <input
@@ -298,8 +333,6 @@ const AddCashCollection = () => {
                                     required
                                 />
                             </div>
-
-                            {/* End Date */}
                             <div className="col-12">
                                 <label className="form-label">End Date</label>
                                 <input
@@ -311,8 +344,6 @@ const AddCashCollection = () => {
                                     required
                                 />
                             </div>
-                            
-                            {/* Submit Button */}
                             <div className="col-12 d-flex justify-content-end">
                                 <button className="btn btn-sm btn-primary" type="submit" disabled={loading}>
                                     {loading ? "Saving..." : "Save Collection"}
@@ -320,8 +351,6 @@ const AddCashCollection = () => {
                             </div>
                         </div>
                     </form>
-
-                    {/* Success & Error Messages */}
                     {error && <p className="text-danger mt-2">{error}</p>}
                     {success && <p className="text-success mt-2">Collection added successfully!</p>}
                 </div>

@@ -1,3 +1,244 @@
+// import React, { useState, useEffect } from "react";
+// import Footer from "../components/footer/Footer";
+// import AddNewBreadcrumb from "../components/breadcrumb/AddNewBreadcrumb";
+// import axios from "axios";
+// import { BASE_URL } from "../api";
+// import Cookies from "js-cookie";
+
+// const AddCollectionPlan = () => {
+//   const [formData, setFormData] = useState({
+//     customer: "",
+//     scheme: "",
+//     amount: "",
+//     payment_date: new Date().toISOString().split("T")[0],
+//     notes: "",
+//   });
+
+//   const [loading, setLoading] = useState(false);
+//   const [message, setMessage] = useState("");
+//   const [messageType, setMessageType] = useState("");
+//   const [customerSchemes, setCustomerSchemes] = useState([]);
+//   const [filteredCustomers, setFilteredCustomers] = useState([]);
+//   const [uniqueSchemes, setUniqueSchemes] = useState([]);
+
+//   useEffect(() => {
+//     fetchCustomerSchemes();
+//   }, []);
+
+//   const fetchCustomerSchemes = async () => {
+//     try {
+//       const response = await axios.get(`${BASE_URL}/cashcollection/customer-schemes/`, {
+//         headers: {
+//           Authorization: `Bearer ${Cookies.get("access_token")}`,
+//         },
+//       });
+
+//       setCustomerSchemes(response.data);
+
+//       // Remove duplicate schemes
+//       const schemes = Array.from(new Set(response.data.map((scheme) => scheme.scheme))).map(
+//         (schemeId) => response.data.find((s) => s.scheme === schemeId)
+//       );
+//       setUniqueSchemes(schemes);
+//     } catch (error) {
+//       console.error("Error fetching schemes:", error);
+//       setMessage("Failed to load customer schemes. Please refresh the page.");
+//       setMessageType("error");
+//     }
+//   };
+
+//   const handleChange = (e) => {
+//     const { name, value } = e.target;
+
+//     if (name === "scheme") {
+//       setFormData({ ...formData, scheme: value, customer: "" });
+
+//       // Filter customers related to the selected scheme
+//       const customersInScheme = customerSchemes.filter((cs) => cs.scheme === Number(value));
+//       setFilteredCustomers(customersInScheme);
+//     } else {
+//       setFormData({ ...formData, [name]: value });
+//     }
+//   };
+
+//   const validateForm = () => {
+//     if (!formData.customer || !formData.scheme || !formData.amount) {
+//       setMessage("All fields except notes are required.");
+//       setMessageType("error");
+//       return false;
+//     }
+
+//     if (isNaN(formData.amount) || Number(formData.amount) <= 0) {
+//       setMessage("Amount must be a valid number greater than 0.");
+//       setMessageType("error");
+//       return false;
+//     }
+
+//     return true;
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     setMessage("");
+//     setMessageType("");
+
+//     if (!validateForm()) return;
+
+//     setLoading(true);
+
+//     try {
+//       await axios.post(
+//         `${BASE_URL}/cashcollection/cashcollection/bycustomer/create/`,
+//         {
+//           customer: formData.customer,
+//           scheme: formData.scheme,
+//           amount: formData.amount,
+//           collection_date: formData.collection_date,
+//           notes: formData.notes,
+//         },
+//         {
+//           headers: {
+//             "Content-Type": "application/json",
+//             Authorization: `Bearer ${Cookies.get("access_token")}`,
+//           },
+//         }
+//       );
+
+//       setMessage("Collection entry added successfully!");
+//       setMessageType("success");
+//       setFormData({
+//         customer: "",
+//         scheme: "",
+//         amount: "",
+//         collection_date: new Date().toISOString().split("T")[0],
+//         notes: "",
+//       });
+//       setFilteredCustomers([]);
+
+//       setTimeout(() => setMessage(""), 5000);
+//     } catch (error) {
+//       console.error("API Error:", error.response?.data);
+//       setMessage(error.response?.data?.error || "Error adding collection entry.");
+//       setMessageType("error");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div className="main-content">
+//       <AddNewBreadcrumb link="/collections" title="Add Collection Entry" />
+//       <div className="row">
+//         <div className="col-12">
+//           <div className="panel">
+//             <div className="panel-header">
+//               <h5>Add Collection Entry</h5>
+//             </div>
+//             <div className="panel-body">
+//               <form onSubmit={handleSubmit}>
+//                 <div className="row g-3">
+//                   {/* Scheme Selection */}
+//                   <div className="col-lg-4 col-sm-6">
+//                     <label className="form-label">Collection Scheme</label>
+//                     <select
+//                       name="scheme"
+//                       className="form-control form-control-sm"
+//                       value={formData.scheme}
+//                       onChange={handleChange}
+//                       required
+//                     >
+//                       <option value="">Select Scheme</option>
+//                       {uniqueSchemes.map((scheme) => (
+//                         <option key={scheme.scheme} value={scheme.scheme}>
+//                           {scheme.scheme_name}
+//                         </option>
+//                       ))}
+//                     </select>
+//                   </div>
+
+//                   {/* Customer Selection */}
+//                   <div className="col-lg-4 col-sm-6">
+//                     <label className="form-label">Customer</label>
+//                     <select
+//                       name="customer"
+//                       className="form-control form-control-sm"
+//                       value={formData.customer}
+//                       onChange={handleChange}
+//                       required
+//                       disabled={!formData.scheme}
+//                     >
+//                       <option value="">Select Customer</option>
+//                       {filteredCustomers.map((cs) => (
+//                         <option key={cs.customer} value={cs.customer}>
+//                           {cs.customer_name}
+//                         </option>
+//                       ))}
+//                     </select>
+//                     {!formData.scheme && <small className="text-muted">Select a scheme first</small>}
+//                   </div>
+
+//                   {/* Amount Input */}
+//                   <div className="col-lg-4 col-sm-6">
+//                     <label className="form-label">Amount Collected</label>
+//                     <input
+//                       type="number"
+//                       name="amount"
+//                       className="form-control form-control-sm"
+//                       value={formData.amount}
+//                       onChange={handleChange}
+//                       required
+//                     />
+//                   </div>
+
+//                   {/* Collection Date */}
+//                   <div className="col-lg-4 col-sm-6">
+//                     <label className="form-label">Collection Date</label>
+//                     <input
+//                       type="date"
+//                       name="collection_date"
+//                       className="form-control form-control-sm"
+//                       value={formData.payment_date}
+//                       onChange={handleChange}
+//                       required
+//                     />
+//                   </div>
+
+//                   {/* Notes */}
+//                   <div className="col-lg-4 col-sm-6">
+//                     <label className="form-label">Notes (Optional)</label>
+//                     <textarea
+//                       name="notes"
+//                       className="form-control form-control-sm"
+//                       value={formData.notes}
+//                       onChange={handleChange}
+//                     />
+//                   </div>
+//                 </div>
+
+//                 {/* Submit Button */}
+//                 <div className="mt-3">
+//                   <button type="submit" className="btn btn-primary" disabled={loading}>
+//                     {loading ? "Adding..." : "Add Collection Entry"}
+//                   </button>
+//                 </div>
+//               </form>
+
+//               {/* Message Display */}
+//               {message && (
+//                 <p className={`mt-2 text-${messageType === "success" ? "success" : "danger"}`}>
+//                   {message}
+//                 </p>
+//               )}
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//       <Footer />
+//     </div>
+//   );
+// };
+
+// export default AddCollectionPlan;
 import React, { useState, useEffect } from "react";
 import Footer from "../components/footer/Footer";
 import AddNewBreadcrumb from "../components/breadcrumb/AddNewBreadcrumb";
@@ -8,97 +249,134 @@ import Cookies from "js-cookie";
 const AddCollectionPlan = () => {
   const [formData, setFormData] = useState({
     customer: "",
-    collection_schema: "",
-    amount_collected: "",
-    collection_date: new Date().toISOString().split("T")[0], 
-    collector: "", 
+    scheme: "",
+    amount: "",
+    collection_date: new Date().toISOString().split("T")[0],
     notes: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [customers, setCustomers] = useState([]);
-  const [schemas, setSchemas] = useState([]);
+  const [messageType, setMessageType] = useState("");
+  const [customerSchemes, setCustomerSchemes] = useState([]);
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [uniqueSchemes, setUniqueSchemes] = useState([]);
+  const [selectedSchemeTotal, setSelectedSchemeTotal] = useState(0);
 
   useEffect(() => {
-    fetchCustomers();
-    fetchSchemas();
+    fetchCustomerSchemes();
   }, []);
 
-  const fetchCustomers = async () => {
+  const fetchCustomerSchemes = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/customers/`, {
+      const response = await axios.get(`${BASE_URL}/cashcollection/customer-schemes/`, {
         headers: {
           Authorization: `Bearer ${Cookies.get("access_token")}`,
         },
       });
-      setCustomers(response.data);
-    } catch (error) {
-      console.error("Error fetching customers:", error);
-    }
-  };
 
-  const fetchSchemas = async () => {
-    try {
-      const response = await axios.get(`${BASE_URL}/collection-schemas/`, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("access_token")}`,
-        },
-      });
-      setSchemas(response.data);
+      setCustomerSchemes(response.data);
+
+      // Extract unique schemes
+      const schemes = Array.from(new Set(response.data.map((scheme) => scheme.scheme))).map(
+        (schemeId) => response.data.find((s) => s.scheme === schemeId)
+      );
+      setUniqueSchemes(schemes);
     } catch (error) {
-      console.error("Error fetching schemas:", error);
+      console.error("Error fetching schemes:", error);
+      setMessage("Failed to load customer schemes. Please refresh the page.");
+      setMessageType("error");
     }
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === "scheme") {
+      const selectedScheme = uniqueSchemes.find((s) => s.scheme === Number(value));
+      setFormData({ ...formData, scheme: value, customer: "" });
+      setFilteredCustomers(customerSchemes.filter((cs) => cs.scheme === Number(value)));
+      setSelectedSchemeTotal(selectedScheme ? parseFloat(selectedScheme.scheme_total_amount) : 0);
+    } else if (name === "amount") {
+      // Prevent amount from exceeding total scheme amount
+      const amountValue = parseFloat(value);
+      if (amountValue > selectedSchemeTotal) {
+        setMessage(`Amount cannot exceed total scheme amount of ${selectedSchemeTotal}`);
+        setMessageType("error");
+      } else {
+        setMessage("");
+      }
+      setFormData({ ...formData, [name]: value });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const validateForm = () => {
-    if (!formData.customer || !formData.collection_schema || !formData.amount_collected) {
+    if (!formData.customer || !formData.scheme || !formData.amount) {
       setMessage("All fields except notes are required.");
+      setMessageType("error");
       return false;
     }
-    if (isNaN(formData.amount_collected) || Number(formData.amount_collected) <= 0) {
+
+    if (isNaN(formData.amount) || Number(formData.amount) <= 0) {
       setMessage("Amount must be a valid number greater than 0.");
+      setMessageType("error");
       return false;
     }
+
+    if (Number(formData.amount) > selectedSchemeTotal) {
+      setMessage(`Amount cannot exceed total scheme amount of ${selectedSchemeTotal}`);
+      setMessageType("error");
+      return false;
+    }
+
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+    setMessageType("");
 
     if (!validateForm()) return;
 
     setLoading(true);
 
     try {
-      await axios.post(`${BASE_URL}/cash-collection/`, formData, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Cookies.get("access_token")}`,
+      await axios.post(
+        `${BASE_URL}/cashcollection/cashcollection/bycustomer/create/`,
+        {
+          customer: formData.customer,
+          scheme: formData.scheme,
+          amount: formData.amount,
+          collection_date: formData.collection_date,
+          notes: formData.notes,
         },
-      });
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Cookies.get("access_token")}`,
+          },
+        }
+      );
 
       setMessage("Collection entry added successfully!");
+      setMessageType("success");
       setFormData({
         customer: "",
-        collection_schema: "",
-        amount_collected: "",
+        scheme: "",
+        amount: "",
         collection_date: new Date().toISOString().split("T")[0],
-        collector: "",
         notes: "",
       });
+      setFilteredCustomers([]);
 
       setTimeout(() => setMessage(""), 5000);
     } catch (error) {
-      setMessage(
-        error.response?.data?.message || "Error adding collection entry."
-      );
       console.error("API Error:", error.response?.data);
+      setMessage(error.response?.data?.error || "Error adding collection entry.");
+      setMessageType("error");
     } finally {
       setLoading(false);
     }
@@ -106,7 +384,7 @@ const AddCollectionPlan = () => {
 
   return (
     <div className="main-content">
-      <AddNewBreadcrumb link="/collections" title={"Add Collection Entry"} />
+      <AddNewBreadcrumb link="/collections" title="Add Collection Entry" />
       <div className="row">
         <div className="col-12">
           <div className="panel">
@@ -116,24 +394,39 @@ const AddCollectionPlan = () => {
             <div className="panel-body">
               <form onSubmit={handleSubmit}>
                 <div className="row g-3">
-                <div className="col-lg-4 col-sm-6">
-                    <label className="form-label">Collection Schema</label>
+                  {/* Scheme Selection */}
+                  <div className="col-lg-4 col-sm-6">
+                    <label className="form-label">Collection Scheme</label>
                     <select
-                      name="collection_schema"
+                      name="scheme"
                       className="form-control form-control-sm"
-                      value={formData.collection_schema}
+                      value={formData.scheme}
                       onChange={handleChange}
                       required
                     >
-                      <option value="">Select Schema</option>
-                      {schemas.map((schema) => (
-                        <option key={schema.id} value={schema.id}>
-                          {schema.name}
+                      <option value="">Select Scheme</option>
+                      {uniqueSchemes.map((scheme) => (
+                        <option key={scheme.scheme} value={scheme.scheme}>
+                          {scheme.scheme_name}
                         </option>
                       ))}
                     </select>
                   </div>
 
+                  {/* Total Scheme Amount */}
+                  {formData.scheme && (
+                    <div className="col-lg-4 col-sm-6">
+                      <label className="form-label">Total Scheme Amount</label>
+                      <input
+                        type="text"
+                        className="form-control form-control-sm"
+                        value={selectedSchemeTotal}
+                        readOnly
+                      />
+                    </div>
+                  )}
+
+                  {/* Customer Selection */}
                   <div className="col-lg-4 col-sm-6">
                     <label className="form-label">Customer</label>
                     <select
@@ -142,59 +435,32 @@ const AddCollectionPlan = () => {
                       value={formData.customer}
                       onChange={handleChange}
                       required
+                      disabled={!formData.scheme}
                     >
                       <option value="">Select Customer</option>
-                      {customers.map((cust) => (
-                        <option key={cust.id} value={cust.id}>
-                          {cust.name}
+                      {filteredCustomers.map((cs) => (
+                        <option key={cs.customer} value={cs.customer}>
+                          {cs.customer_name}
                         </option>
                       ))}
                     </select>
+                    {!formData.scheme && <small className="text-muted">Select a scheme first</small>}
                   </div>
 
-                  {/* <div className="col-lg-4 col-sm-6">
-                    <label className="form-label">Collection Schema</label>
-                    <select
-                      name="collection_schema"
-                      className="form-control form-control-sm"
-                      value={formData.collection_schema}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="">Select Schema</option>
-                      {schemas.map((schema) => (
-                        <option key={schema.id} value={schema.id}>
-                          {schema.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div> */}
-
+                  {/* Amount Input */}
                   <div className="col-lg-4 col-sm-6">
                     <label className="form-label">Amount Collected</label>
                     <input
                       type="number"
-                      name="amount_collected"
+                      name="amount"
                       className="form-control form-control-sm"
-                      value={formData.amount_collected}
+                      value={formData.amount}
                       onChange={handleChange}
                       required
                     />
                   </div>
 
-                  
-                  <div className="col-lg-4 col-sm-6">
-                    <label className="form-label">Amount Remaining</label>
-                    <input
-                      type="number"
-                      name="amount_collected"
-                      className="form-control form-control-sm"
-                      value={formData.amount_collected}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-
+                  {/* Collection Date */}
                   <div className="col-lg-4 col-sm-6">
                     <label className="form-label">Collection Date</label>
                     <input
@@ -207,6 +473,7 @@ const AddCollectionPlan = () => {
                     />
                   </div>
 
+                  {/* Notes */}
                   <div className="col-lg-4 col-sm-6">
                     <label className="form-label">Notes (Optional)</label>
                     <textarea
@@ -218,18 +485,20 @@ const AddCollectionPlan = () => {
                   </div>
                 </div>
 
+                {/* Submit Button */}
                 <div className="mt-3">
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={loading}
-                  >
+                  <button type="submit" className="btn btn-primary" disabled={loading}>
                     {loading ? "Adding..." : "Add Collection Entry"}
                   </button>
                 </div>
               </form>
 
-              {message && <p className="mt-2 text-info">{message}</p>}
+              {/* Message Display */}
+              {message && (
+                <p className={`mt-2 text-${messageType === "success" ? "success" : "danger"}`}>
+                  {message}
+                </p>
+              )}
             </div>
           </div>
         </div>

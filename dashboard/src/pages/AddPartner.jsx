@@ -90,12 +90,12 @@ const AddPartner = () => {
 
   return (
     <div className="main-content">
-      <AddNewBreadcrumb link={breadcrumbLink} title={"Add Partner"} />
+      <AddNewBreadcrumb link={breadcrumbLink} title={"Add Agents"} />
       <div className="row">
         <div className="col-12">
           <div className="panel">
             <div className="panel-header">
-              <h5>Create Partner Profile</h5>
+              <h5>Create Agent Profile</h5>
             </div>
             <div className="panel-body">
               <form onSubmit={handleSubmit}>

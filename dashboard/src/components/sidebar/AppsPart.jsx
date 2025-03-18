@@ -48,9 +48,9 @@ const AppsPart = () => {
             <li className="sidebar-dropdown-item">
               <NavLink to="/allSales" className="sidebar-link">Transaction Reports</NavLink>
             </li>
-            <li className="sidebar-dropdown-item">
+            {/* <li className="sidebar-dropdown-item">
               <NavLink to="/allPurchase" className="sidebar-link">Planwise Reports</NavLink>
-            </li>
+            </li> */}
           </ul>
         </li>
 
@@ -100,7 +100,7 @@ const AppsPart = () => {
             <span className="sidebar-txt">Collections</span>
           </Link>
           <ul className={`sidebar-dropdown-menu ${dropdownState.isCrmCollectionDropdownOpen ? 'd-block' : 'd-none'}`}>
-            <li className="sidebar-dropdown-item"><NavLink to="/collectionplan" className="sidebar-link">Collection Plan A</NavLink></li>
+            <li className="sidebar-dropdown-item"><NavLink to="/collectionplan" className="sidebar-link">Collection Plan</NavLink></li>
           </ul>
         </li>
 
@@ -115,8 +115,8 @@ const AppsPart = () => {
             <span className="sidebar-txt">HRM</span>
           </Link>
           <ul className={`sidebar-dropdown-menu ${dropdownState.isHrmDropdownOpen ? 'd-block' : 'd-none'}`}>
-            <li className="sidebar-dropdown-item"><NavLink to="/allCustomer" className="sidebar-link">Customer</NavLink></li>
-            <li className="sidebar-dropdown-item"><NavLink to="/supplier" className="sidebar-link">Agents</NavLink></li>
+            <li className="sidebar-dropdown-item"><NavLink to="/allCustomer" className="sidebar-link">Agents</NavLink></li>
+            <li className="sidebar-dropdown-item"><NavLink to="/allCollectionCustomer" className="sidebar-link">Customers</NavLink></li>
             {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && (
               <li className="sidebar-dropdown-item"><NavLink to="/allEmployee" className="sidebar-link">Admins</NavLink></li>
             )}

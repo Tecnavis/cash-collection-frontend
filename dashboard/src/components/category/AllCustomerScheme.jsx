@@ -1,57 +1,92 @@
+
+
 import React, { useContext, useState, useEffect } from 'react';
-import { Form } from 'react-bootstrap';
+import { Form, Button, Modal } from 'react-bootstrap';
 import axios from 'axios';
 import { BASE_URL } from '../../api';
 import { DigiContext } from '../../context/DigiContext';
 import Cookies from 'js-cookie';
+
 const AllCustomerSchemes = () => {
     const { headerBtnOpen, handleHeaderBtn, handleHeaderReset, headerRef } = useContext(DigiContext);
     const [schemes, setSchemes] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [checkboxes, setCheckboxes] = useState({
-        showSchemeNumber: true,
-        showName: true,
-        showTotalAmount: true,
-        showCollectionFrequency: true,
-        showInstallmentAmount: true,
-        showStartDate: true,
-        showEndDate: true,
-        showAction: true,
-    });
-
+    const [selectedScheme, setSelectedScheme] = useState(null);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    
     useEffect(() => {
         fetchSchemes();
     }, []);
 
     const fetchSchemes = async () => {
         try {
-            const token = Cookies.get("access_token");  
-            const response = await axios.get(`${BASE_URL}/cashcollection/schemes/`, {
+            const token = Cookies.get("access_token");
+            const response = await axios.get(`${BASE_URL}/cashcollection/cashcollections/`, {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`
                 }
             });
-            setSchemes(response.data);
+            setSchemes([...response.data]);
         } catch (error) {
             console.error("Error fetching schemes:", error);
+            setSchemes([]);
         }
     };
-    
 
-    const handleChange = (e) => {
-        const { id } = e.target;
-        setCheckboxes(prev => ({ ...prev, [id]: !prev[id] }));
+    const handleSearch = (e) => setSearchTerm(e.target.value);
+
+    const handleEditClick = (scheme) => {
+        setSelectedScheme(scheme);
+        setShowEditModal(true);
     };
 
-    const handleSearch = (e) => {
-        setSearchTerm(e.target.value);
+    const handleDeleteClick = (scheme) => {
+        setSelectedScheme(scheme);
+        setShowDeleteModal(true);
     };
 
-    const filteredSchemes = schemes.filter(scheme => 
-        scheme.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        scheme.scheme_number.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+        setSelectedScheme({ ...selectedScheme, [name]: value });
+    };
+
+    const handleEditSubmit = async () => {
+        try {
+            const token = Cookies.get("access_token");
+            await axios.put(`${BASE_URL}/cashcollection/cashcollections/${selectedScheme.id}/`, selectedScheme, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            fetchSchemes();
+            setShowEditModal(false);
+        } catch (error) {
+            console.error("Error updating scheme:", error);
+        }
+    };
+
+    const handleDeleteSubmit = async () => {
+        try {
+            const token = Cookies.get("access_token");
+            await axios.delete(`${BASE_URL}/cashcollection/cashcollections/${selectedScheme.id}/delete/`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            fetchSchemes();
+            setShowDeleteModal(false);
+        } catch (error) {
+            console.error("Error deleting scheme:", error);
+        }
+    };
+
+    const filteredSchemes = schemes?.filter(scheme => 
+        typeof scheme?.scheme_name === "string" && scheme.scheme_name.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
 
     return (
         <div className="col-xxl-8 col-md-7">
@@ -59,68 +94,38 @@ const AllCustomerSchemes = () => {
                 <div className="panel-header d-flex justify-content-between align-items-center">
                     <h5>All Schemes</h5>
                     <div className="btn-box d-flex gap-2">
-                        <Form.Control 
-                            type="text" 
-                            placeholder="Search..." 
-                            value={searchTerm} 
-                            onChange={handleSearch} 
-                        />
+                        <Form.Control type="text" placeholder="Search..." value={searchTerm} onChange={handleSearch} />
                     </div>
                 </div>
                 <div className="panel-body">
-                    <div className="table-filter-option mb-3">
-                        <div className="row g-3">
-                            <div className="col-12 d-flex gap-2 flex-wrap">
-                                {Object.keys(checkboxes).map(key => (
-                                    <Form.Check 
-                                        key={key}
-                                        type="checkbox"
-                                        id={key}
-                                        label={key.replace('show', '').replace(/([A-Z])/g, ' $1')}
-                                        checked={checkboxes[key]}
-                                        onChange={handleChange}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
                     <div className="table-responsive">
                         <table className="table table-striped">
                             <thead>
                                 <tr>
-                                    {checkboxes.showSchemeNumber && <th> Number</th>}
-                                    {checkboxes.showName && <th>Name</th>}
-                                    {checkboxes.showTotalAmount && <th>Total Amount</th>}
-                                    {checkboxes.showCollectionFrequency && <th>Collection Frequency</th>}
-                                    {checkboxes.showInstallmentAmount && <th>Installment Amount</th>}
-                                    {checkboxes.showStartDate && <th>Start Date</th>}
-                                    {checkboxes.showEndDate && <th>End Date</th>}
-                                    {checkboxes.showAction && <th>Actions</th>}
+                                    <th>Scheme</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Customer</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredSchemes.length > 0 ? (
                                     filteredSchemes.map((scheme) => (
                                         <tr key={scheme.id}>
-                                            {checkboxes.showSchemeNumber && <td>{scheme.scheme_number}</td>}
-                                            {checkboxes.showName && <td>{scheme.name}</td>}
-                                            {checkboxes.showTotalAmount && <td>{scheme.total_amount}</td>}
-                                            {checkboxes.showCollectionFrequency && <td>{scheme.collection_frequency}</td>}
-                                            {checkboxes.showInstallmentAmount && <td>{scheme.installment_amount || '-'}</td>}
-                                            {checkboxes.showStartDate && <td>{scheme.start_date}</td>}
-                                            {checkboxes.showEndDate && <td>{scheme.end_date}</td>}
-                                            {checkboxes.showAction && (
-                                                <td>
-                                                    <button className="btn btn-sm btn-warning me-2">Edit</button>
-                                                    <button className="btn btn-sm btn-danger">Delete</button>
-                                                </td>
-                                            )}
+                                            <td>{scheme?.scheme_name || '-'}</td>
+                                            <td>{scheme?.start_date || '-'}</td>
+                                            <td>{scheme?.end_date || '-'}</td>
+                                            <td>{scheme?.customer_name || '-'}</td>
+                                            <td>
+                                                {/* <Button variant="primary" size="sm" onClick={() => handleEditClick(scheme)}>Edit</Button>{' '} */}
+                                                <Button variant="danger" size="sm" onClick={() => handleDeleteClick(scheme)}>Delete</Button>
+                                            </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="8" className="text-center">Schemes found</td>
+                                        <td colSpan="5" className="text-center">No schemes found</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -128,7 +133,55 @@ const AllCustomerSchemes = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Edit Modal */}
+            {/* <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Edit Scheme</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {selectedScheme && (
+                        <Form>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Scheme Name</Form.Label>
+                                <Form.Control type="text" name="scheme_name" value={selectedScheme.scheme_name} onChange={handleEditChange} />
+                            </Form.Group>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Customer Name</Form.Label>
+                                <Form.Control type="text" name="customer_name" value={selectedScheme.customer_name} onChange={handleEditChange} />
+                            </Form.Group>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Start Date</Form.Label>
+                                <Form.Control type="date" name="start_date" value={selectedScheme.start_date} readOnly />
+                            </Form.Group>
+                            <Form.Group className="mb-3">
+                                <Form.Label>End Date</Form.Label>
+                                <Form.Control type="date" name="end_date" value={selectedScheme.end_date} readOnly />
+                            </Form.Group>
+                        </Form>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowEditModal(false)}>Cancel</Button>
+                    <Button variant="primary" onClick={handleEditSubmit}>Save Changes</Button>
+                </Modal.Footer>
+            </Modal> */}
+
+            {/* Delete Modal */}
+            <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Delete Scheme</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    Are you sure you want to delete <strong>{selectedScheme?.scheme_name}</strong>?
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+                    <Button variant="danger" onClick={handleDeleteSubmit}>Delete</Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 };
+
 export default AllCustomerSchemes;

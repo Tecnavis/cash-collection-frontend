@@ -7,7 +7,7 @@ import { BASE_URL } from "../../api";
 import Cookies from "js-cookie";
 
 
-const AllCustomerTable = () => {
+const AllCollectionCustomerTable = () => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,13 +24,18 @@ const AllCustomerTable = () => {
     fetchCustomers(currentPage);
   }, [currentPage]);
 
+  useEffect(() => {
+    fetchCustomers(currentPage);
+  }, [currentPage]);
+  
   const fetchCustomers = async (page) => {
     try {
       const token = Cookies.get("access_token");
-      const response = await axios.get(`${BASE_URL}/partner/partner/`, {
+      const response = await axios.get(`${BASE_URL}/partner/customers/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const formattedCustomers = response.data.results.map((customer) => ({
+  
+      const formattedCustomers = response.data.map((customer) => ({
         id: customer.id,
         first_name: customer.user.first_name,
         last_name: customer.user.last_name,
@@ -42,7 +47,8 @@ const AllCustomerTable = () => {
       }));
   
       setCustomers(formattedCustomers);
-      setTotalPages(response.data.total_pages);
+      setDataList(formattedCustomers); // Update dataList to reflect changes
+      setTotalPages(response.data.total_pages || 1);
     } catch (error) {
       console.error("Error fetching customers:", error);
       setError("Error fetching customers");
@@ -51,90 +57,89 @@ const AllCustomerTable = () => {
     }
   };
   
-  const handleViewEmployee = async (id) => {
-    if (!id) {
-      console.error("Invalid employee ID:", id);
-      return;
-    }
-  
-    try {
-      const token = Cookies.get("access_token");
-      const response = await fetch(`${BASE_URL}/partner/partners/${id}/details/`, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to fetch employee details");
-      }
-  
-      const data = await response.json();
-      if (!data || !data.id) {
-        throw new Error("Invalid data received");
-      }
-  
-      // Ensure `isEditing` is NOT set or is set to false
-      setSelectedEmployee({ ...data, isEditing: false });
-  
-      // Ensure modal opens
-      setShowModal(true);
-    } catch (error) {
-      console.error("Error fetching employee details:", error);
-    }
-  };
-  
 
+  // const fetchCustomers = async (page) => {
+  //   try {
+  //     const token = Cookies.get("access_token");
+  //     const response = await axios.get(`${BASE_URL}/partner/customers/`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+  //     const formattedCustomers = response.data.results.map((customer) => ({
+  //       id: customer.id,
+  //       first_name: customer.user.first_name,
+  //       last_name: customer.user.last_name,
+  //       email: customer.user.email,
+  //       secondary_contact: customer.secondary_contact || "N/A",
+  //       address: customer.address || "N/A",
+  //       other_info: customer.other_info || "N/A",
+  //       showDropdown: false, 
+  //     }));
+  
+  //     setCustomers(formattedCustomers);
+  //     setTotalPages(response.data.total_pages);
+  //   } catch (error) {
+  //     console.error("Error fetching customers:", error);
+  //     setError("Error fetching customers");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+    const handleViewEmployee = async (id) => {
+  if (!id) {
+    console.error("Invalid employee ID:", id);
+    return;
+  }
+
+  try {
+    const response = await fetch(`${BASE_URL}/partner/partner/${id}/`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch employee details");
+    }
+    
+    const data = await response.json();
+    if (!data || !data.id) {
+      throw new Error("Invalid data received");
+    }
+    setSelectedEmployee({ ...data, isEditing: false });
+    setShowModal(true);
+  } catch (error) {
+    console.error("Error fetching employee details:", error);
+  }
+};
     const handleOpenEditModal = (customer) => {
       setSelectedEmployee({ ...customer, isEditing: true });
       setShowModal(true);
   };
-
-  const handleUpdateEmployee = async () => {
-    if (!selectedEmployee || !selectedEmployee.id) {
-        console.error("No employee selected for update.");
-        return;
-    }
-
-    try {
-        const response = await fetch(`${BASE_URL}/partner/partners/${selectedEmployee.id}/`, {
+    const handleUpdateEmployee = async () => {
+        try {
+          const response = await fetch(`${BASE_URL}/partner/partners/${selectedEmployee.id}/`, {
             method: "PUT",
             headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${Cookies.get("access_token")}`
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${Cookies.get("access_token")}`
             },
             body: JSON.stringify({
-                first_name: selectedEmployee.first_name || "",
-                last_name: selectedEmployee.last_name || "",
-                email: selectedEmployee.email || "",
-                secondary_contact: selectedEmployee.secondary_contact || "",
-                address: selectedEmployee.address || "",
-                other_info: selectedEmployee.other_info || ""
+              username: selectedEmployee.username,
+              email: selectedEmployee.email,
+              contact_number: selectedEmployee.contact_number,
+              secondary_contact: selectedEmployee.secondary_contact,
+              company_name: selectedEmployee.company_name,
             }),
-            
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error("Error updating employee:", errorData);
-            alert(`Failed to update employee: ${errorData.message || "Unknown error"}`);
-            return;
+          });
+      
+          if (response.ok) {
+            const updatedData = await response.json();
+            console.log("Updated Employee:", updatedData);
+            fetchStaffUsers(); 
+            setShowModal(false); 
+          } else {
+            console.error("Error updating employee:", await response.json());
+          }
+        } catch (error) {
+          console.error("Network error:", error);
         }
-
-        const updatedData = await response.json();
-        console.log("Updated Employee:", updatedData);
-        fetchCustomers(); 
-
-        // Close modal
-        setShowModal(false);
-
-    } catch (error) {
-        console.error("Network error:", error);
-        alert("A network error occurred. Please try again later.");
-    }
-};
+      };
+     
     const handleDeleteEmployee = async (id) => {
       if (window.confirm("Are you sure you want to delete this employee?")) {
         try {
@@ -157,6 +162,15 @@ const AllCustomerTable = () => {
         }
       }
     };
+  const handleDropdownToggle = (event, index) => {
+    event.stopPropagation();
+    setCustomers((prevCustomers) =>
+      prevCustomers.map((customer, i) => ({
+        ...customer,
+        showDropdown: i === index ? !customer.showDropdown : false,
+      }))
+    );
+  };
   const currentData = dataList.slice((currentPage - 1) * dataPerPage, currentPage * dataPerPage);
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   if (loading) return <p>Loading customers...</p>;
@@ -165,46 +179,46 @@ const AllCustomerTable = () => {
     <>
       <OverlayScrollbarsComponent>
         <Table striped bordered hover>
-          <thead>
-            <tr>
-              <th>Profile ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Contact Number</th>
-              <th>Address</th>
-              <th>Other Info</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-          {customers.length > 0 ? (
-            customers.map((customer, index) => (
-              <tr key={index}>
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Address</th>
+            <th>Address</th>
+            <th>Other Info</th>
+          </tr>
+        </thead>
 
-                <td>{customer.id}</td> 
+        <tbody>
+          {currentData.length > 0 ? (
+            currentData.map((customer, index) => (
+              <tr key={index}>
+                <td>
+                  <div className="digi-dropdown dropdown d-inline-block" ref={dropdownRef}>
+                    <button className="btn btn-sm btn-outline-primary" onClick={(event) => handleDropdownToggle(event, index)}>
+                      Action <i className="fa-regular fa-angle-down"></i>
+                    </button>
+                    <ul className={`dropdown-menu ${customer.showDropdown ? "show" : ""}`}>
+                      <li>
+                        <button className="dropdown-item" onClick={() => handleViewEmployee(customer.id)}>View</button>
+                      </li>
+                      <li>
+                        <button className="dropdown-item" onClick={() => handleOpenEditModal(customer)}>Update</button>
+                      </li>
+                      <li>
+                        <button className="dropdown-item" onClick={() => handleDeleteEmployee(customer.id)}>Delete</button>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+                <td>{customer.id}</td>
                 <td>{`${customer.first_name} ${customer.last_name}`}</td>
-                <td>{customer.email || "N/A"}</td>
+                <td>{customer.email}</td>
                 <td>{customer.secondary_contact}</td>
                 <td>{customer.address}</td>
                 <td>{customer.other_info}</td>
-
-                <td>
-                  <i
-                    className="fa-light fa-eye text me-3 cursor-pointer"
-                    style={{ fontSize: "18px" }}
-                    onClick={() => handleViewEmployee(customer.id)}
-                  ></i>
-                  <i
-                    className="fa-light fa-pen-nib text me-3 cursor-pointer"
-                    style={{ fontSize: "18px" }}
-                    onClick={() => handleOpenEditModal(customer)}
-                  ></i>
-                  <i
-                    className="fa-light fa-trash-can text cursor-pointer"
-                    style={{ fontSize: "18px" }}
-                    onClick={() => handleDeleteEmployee(customer.id)}
-                  ></i>
-                </td>
               </tr>
             ))
           ) : (
@@ -233,7 +247,7 @@ const AllCustomerTable = () => {
                           <input
                             type="text"
                             className="form-control"
-                            value={selectedEmployee.id || ''}
+                            value={selectedEmployee.profile_id || ''}
                             disabled // Making Profile ID non-editable
                           />
                         </div>
@@ -246,7 +260,7 @@ const AllCustomerTable = () => {
                             className="form-control"
                             value={selectedEmployee.first_name || ''}
                             onChange={(e) =>
-                              setSelectedEmployee({ ...selectedEmployee, first_name: e.target.value })
+                              setSelectedEmployee({ ...selectedEmployee, username: e.target.value })
                             }
                           />
                         </div>
@@ -270,14 +284,14 @@ const AllCustomerTable = () => {
                           <input
                             type="text"
                             className="form-control"
-                            value={selectedEmployee.secondary_contact || ''}
+                            value={selectedEmployee.contact_number || ''}
                             onChange={(e) =>
-                              setSelectedEmployee({ ...selectedEmployee, secondary_contact: e.target.value })
+                              setSelectedEmployee({ ...selectedEmployee, contact_number: e.target.value })
                             }
                           />
                         </div>
 
-                        {/* Address */}
+                        {/* Address*/}
                         <div className="mb-3">
                           <label className="form-label">Address</label>
                           <input
@@ -290,7 +304,7 @@ const AllCustomerTable = () => {
                           />
                         </div>
 
-                        {/*Other info */}
+                        {/* Other Info */}
                         <div className="mb-3">
                           <label className="form-label">Other Info</label>
                           <input
@@ -317,7 +331,6 @@ const AllCustomerTable = () => {
                 </div>
               </div>
             ) : (
-
     // View Modal
         <div className="modal fade show d-block" tabIndex="-1" role="dialog">
           <div className="modal-dialog modal-dialog-centered">
@@ -328,14 +341,14 @@ const AllCustomerTable = () => {
               </div>
               <div className="modal-body p-4 text-center">
                 <i className="fa-solid fa-user-circle fa-4x text-primary mb-3"></i>
-                <p><strong>Profile ID:</strong> {selectedEmployee.id || "N/A"}</p>
-                <p><strong>Other Info:</strong> {selectedEmployee.other_info || "N/A"}</p>
-                <p><strong>Email:</strong> {selectedEmployee.user.email || "N/A"}</p>
-                <p><strong>Name:</strong> {selectedEmployee.user.first_name} {selectedEmployee.last_name}</p>
-                <p><strong>Phone:</strong> {selectedEmployee.secondary_contact || "N/A"}</p>
+                <p><strong>Profile ID:</strong> {selectedEmployee.profile_id || "N/A"}</p>
+                <p><strong> Other Info:</strong> {selectedEmployee.other_info || "N/A"}</p>
+                <p><strong>Email:</strong> {selectedEmployee.email || "N/A"}</p>
+                <p><strong>Name:</strong> {selectedEmployee.first_name} {selectedEmployee.last_name}</p>
+                <p><strong>Phone:</strong> {selectedEmployee.contact_number || "N/A"}</p>
                 <p><strong>Address:</strong> {selectedEmployee.address || "N/A"}</p>
-                {/* <p><strong>Partner Type:</strong> {selectedEmployee.partner_type || "N/A"}</p> */}
-                {/* <p><strong>Created At:</strong> {new Date(selectedEmployee.created_at).toLocaleString()}</p> */}
+                <p><strong>Partner Type:</strong> {selectedEmployee.partner_type || "N/A"}</p>
+                <p><strong>Created At:</strong> {new Date(selectedEmployee.created_at).toLocaleString()}</p>
               </div>
               <div className="modal-footer justify-content-center">
                 <button type="button" className="btn btn-danger px-4" onClick={() => setShowModal(false)}>
@@ -358,5 +371,4 @@ const AllCustomerTable = () => {
     </>
   );
 };
-export default AllCustomerTable;
-
+export default AllCollectionCustomerTable;
