@@ -155,8 +155,10 @@ const AllCustomerTable = () => {
         } catch (error) {
           console.error("Error deleting employee:", error);
         }
+        fetchCustomers(); 
       }
     };
+
   const currentData = dataList.slice((currentPage - 1) * dataPerPage, currentPage * dataPerPage);
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   if (loading) return <p>Loading customers...</p>;
@@ -227,7 +229,7 @@ const AllCustomerTable = () => {
                     <div className="modal-body">
                     <div className="modal-body">
                       <form>
-                        {/* Profile ID (Assuming it's not editable) */}
+                
                         <div className="mb-3">
                           <label className="form-label">Profile ID</label>
                           <input
@@ -334,8 +336,6 @@ const AllCustomerTable = () => {
                 <p><strong>Name:</strong> {selectedEmployee.user.first_name} {selectedEmployee.last_name}</p>
                 <p><strong>Phone:</strong> {selectedEmployee.secondary_contact || "N/A"}</p>
                 <p><strong>Address:</strong> {selectedEmployee.address || "N/A"}</p>
-                {/* <p><strong>Partner Type:</strong> {selectedEmployee.partner_type || "N/A"}</p> */}
-                {/* <p><strong>Created At:</strong> {new Date(selectedEmployee.created_at).toLocaleString()}</p> */}
               </div>
               <div className="modal-footer justify-content-center">
                 <button type="button" className="btn btn-danger px-4" onClick={() => setShowModal(false)}>

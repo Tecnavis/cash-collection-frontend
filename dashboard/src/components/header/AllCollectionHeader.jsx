@@ -139,13 +139,13 @@ const AllCollectionHeader = () => {
   
   return (
     <div className="panel-header">
-      <h5>Sales</h5>
+      <h5></h5>
       <div className="btn-box d-flex flex-wrap gap-2">
         <div id="tableSearch">
           <Form.Control type="text" placeholder="Search..." />
         </div>
         <div className="btn-box">
-          <Link to="/addSales" className="btn btn-sm btn-primary">
+          <Link to="/collectionplan" className="btn btn-sm btn-primary">
             <i className="fa-light fa-plus"></i>Add New
           </Link>
           <Button className="btn btn-sm btn-success ms-2" onClick={downloadSalesPDF}>
