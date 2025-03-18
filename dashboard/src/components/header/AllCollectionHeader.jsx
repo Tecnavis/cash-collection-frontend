@@ -21,7 +21,6 @@ const AllCollectionHeader = () => {
       const doc = new jsPDF();
       doc.setFontSize(10);
       doc.text("Sales Report", doc.internal.pageSize.getWidth() / 2, 10, { align: "center" });
-
       const columns = [
         "Transaction ID",
         "Username",
@@ -32,8 +31,6 @@ const AllCollectionHeader = () => {
         "Sale Date",
         "Payment Modes",
       ];
-
-
       const rows = transactions
         .filter((transaction) => transaction.transaction_type === "sale")
         .map((transaction) => {
@@ -165,5 +162,4 @@ const AllCollectionHeader = () => {
     </div>
   );
 };
-
 export default AllCollectionHeader;
