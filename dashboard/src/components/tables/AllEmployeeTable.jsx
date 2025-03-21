@@ -23,12 +23,13 @@ const AllEmployeeTable = () => {
       const response = await fetch(`${BASE_URL}/users/staffs/`, {
         headers: {
           "Authorization": `Bearer ${Cookies.get("access_token")}`,
+
         },
       });
       const result = await response.json();
 
       if (Array.isArray(result) && result.length > 0) {
-        const staffUsers = result.filter((user) => user.role === "staff");
+        const staffUsers = result.filter((user) => user.role === "admin");
         setDataList(staffUsers);
       } else {
         setDataList([]);
