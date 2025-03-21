@@ -28,7 +28,7 @@ const BasicInformation = () => {
     setMessage('');
 
     try {
-      const response = await axios.post(`${BASE_URL}/users/staffs/create/`, formData, {
+      const response = await axios.post(`${BASE_URL}/users/admin/create/`, formData, {
         headers: {
           'Content-Type': 'application/json',
            "Authorization": `Bearer ${Cookies.get("access_token")}` 
