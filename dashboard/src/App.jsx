@@ -78,8 +78,10 @@ function App() {
             <Route path="/profile" element={<Profile/>}/>
             <Route path="/editProfile" element={<EditProfile/>}/>
             <Route path="/customerscheme" element={<SchemeByCustomer />} />
-
+            
+            {/*collection plan add,view*/}
             <Route path="/collectionplan" element={<AddCollectionPlan />} />
+            <Route path="/collections" element={<AllCollections />} />
            
 
             <Route path="/allProduct" element={<AllProduct />} />   
@@ -90,7 +92,7 @@ function App() {
 
             <Route path="/allSales" element={<AllSales />} />
             <Route path="/addSales" element={<AddSales />} />
-            <Route path="/collections" element={<AllCollections />} />
+            
 
             <Route path="/allpurchase" element={<AllPurchase />} />
             <Route path="/addPurchase" element={<AddPurchase />} />
