@@ -1,19 +1,19 @@
 import React from 'react'
 import Footer from '../components/footer/Footer'
 import HeaderBtn from '../components/header/HeaderBtn'
-import AllCollectionHeader from '../components/header/AllCollectionHeader'
-import AllCollectionTable from '../components/tables/AllCollectionTable'
+import AllTransactionTable from '../components/tables/AllTransactionTable'
+import AllTransactionsHeader from '../components/header/AllTransactionHeader'
 
-const AllCollectionMainContent = () => {
+const AllTransactionMainContent = () => {
   return (
     <div className="main-content">
         <div className="row g-4">
             <div className="col-12">
                 <div className="panel">
-                    <AllCollectionHeader/>
+                    <AllTransactionsHeader/>
                     <div className="panel-body">
                         <HeaderBtn/>
-                        <AllCollectionTable/>
+                        <AllTransactionTable/>
                     </div>
                 </div>
             </div>
@@ -22,4 +22,4 @@ const AllCollectionMainContent = () => {
     </div>
   )
 }
-export default AllCollectionMainContent
+export default AllTransactionMainContent

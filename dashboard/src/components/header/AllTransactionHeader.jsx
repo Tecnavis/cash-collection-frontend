@@ -9,7 +9,7 @@ import { BASE_URL } from "../../api";
 import * as XLSX from "xlsx"; 
 import Cookies from "js-cookie";
 
-const AllCollectionHeader = () => {
+const AllTransactionHeader = () => {
   const { headerBtnOpen, handleHeaderBtn, handleHeaderReset, headerRef } =
     useContext(DigiContext);
 
@@ -136,30 +136,13 @@ const AllCollectionHeader = () => {
   
   return (
     <div className="panel-header">
-      <h5>schemewise customer </h5>
+      <h5> Transactions list </h5>
       <div className="btn-box d-flex flex-wrap gap-2">
         <div id="tableSearch">
           <Form.Control type="text" placeholder="Search..." />
         </div>
-        {/* <div className="btn-box">
-          <Link to="/collectionplan" className="btn btn-sm btn-primary">
-            <i className="fa-light fa-plus"></i>Add New
-          </Link>
-          <Button className="btn btn-sm btn-success ms-2" onClick={downloadSalesPDF}>
-            <i className="fa fa-download"></i> PDF
-          </Button>
-          <Button className="btn btn-sm btn-info ms-2 text-white" onClick={downloadSalesExcel}>
-            <i className="fa-light fa-file-excel"></i>Excel
-          </Button>
-
-          <input type="file" accept=".xlsx, .xls" onChange={uploadSalesExcel} className="d-none" id="uploadExcel" />
-          <label htmlFor="uploadExcel" className="btn btn-sm btn-primary ms-2 text-white">
-            <i className="fa-light fa-upload"></i> Import
-          </label>
-
-        </div> */}
       </div>
     </div>
   );
 };
-export default AllCollectionHeader;
+export default AllTransactionHeader;

@@ -39,7 +39,8 @@ import ProtectedRoute from '../src/protectedroute/ProtectedRoute';
 import AddCollectionPlan from "./pages/AddCollectionPlan"
 import AllCollections from "./pages/AllCollections"
 import AllCollectionCustomer from "./pages/AllCollectionCustomer"
-
+import AllTransactions from "./pages/AllTransactions"
+import AllCustomerTransaction from "./pages/AllCustomerTransactions"
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!Cookies.get('access_token'));
 
@@ -82,7 +83,9 @@ function App() {
             {/*collection plan add,view*/}
             <Route path="/collectionplan" element={<AddCollectionPlan />} />
             <Route path="/collections" element={<AllCollections />} />
-           
+            <Route path="/transactions" element={<AllTransactions/>} />
+
+            <Route path="/customertransaction" element={<AllCustomerTransaction />} />
 
             <Route path="/allProduct" element={<AllProduct />} />   
             <Route path="/category" element={<Category />} />

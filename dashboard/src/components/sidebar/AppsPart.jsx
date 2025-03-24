@@ -26,7 +26,13 @@ const AppsPart = () => {
           </Link>
           <ul className="sidebar-dropdown-menu d-block">
             <li className="sidebar-dropdown-item">
-              <NavLink to="/allSales" className="sidebar-link">Transaction Reports</NavLink>
+              <NavLink to="/collections" className="sidebar-link">Collection Reports</NavLink>
+            </li>
+            <li className="sidebar-dropdown-item">
+              <NavLink to="/customertransaction" className="sidebar-link">Customerwise Reports</NavLink>
+            </li>
+            <li className="sidebar-dropdown-item">
+              <NavLink to="/transactions" className="sidebar-link">Transaction Reports</NavLink>
             </li>
           </ul>
         </li>
