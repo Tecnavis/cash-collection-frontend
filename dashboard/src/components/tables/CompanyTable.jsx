@@ -64,7 +64,7 @@ const AllCustomerTable = () => {
       setMessage("User profile created successfully!");
       setFormData({
         profileId: "",
-        username: "",
+        shop_name: "",
         first_name: "",
         last_name: "",
         contact_number: "",
@@ -103,7 +103,7 @@ const AllCustomerTable = () => {
                   </div>
                   <div className="col-sm-6">
                     <label className="form-label">Shop Name</label>
-                    <input type="text" name="username" className="form-control" value={formData.username} onChange={handleChange} required />
+                    <input type="text" name="shop_name" className="form-control" value={formData.shop_name} onChange={handleChange} required />
                   </div>
                   <div className="col-sm-6">
                     <label className="form-label">First Name</label>

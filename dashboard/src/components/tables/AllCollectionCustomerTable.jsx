@@ -36,10 +36,12 @@ const AllCollectionCustomerTable = () => {
       });
   
       const formattedCustomers = response.data.map((customer) => ({
-        id: customer.id,
+        id: customer.profile_id,
+        shop_name: customer.shop_name,
         first_name: customer.user.first_name,
         last_name: customer.user.last_name,
         email: customer.user.email,
+        contact_number: customer.user.contact_number,
         secondary_contact: customer.secondary_contact || "N/A",
         address: customer.address || "N/A",
         other_info: customer.other_info || "N/A",
@@ -174,10 +176,12 @@ const AllCollectionCustomerTable = () => {
         <thead>
           <tr>
             <th>Profile ID</th>
-            <th>Name</th>
+            <th>Shop Name</th>
+            <th>Full Name</th>
             <th>Email</th>
-            <th>Address</th>
-            <th>Address</th>
+            <th>Contact number</th>
+            <th>Secondary contact number</th>
+         
             <th>Other Info</th>
             <th>Action</th>
           </tr>
@@ -188,10 +192,12 @@ const AllCollectionCustomerTable = () => {
             currentData.map((customer, index) => (
               <tr key={index}>
                 <td>{customer.id}</td>
+                <td>{customer.shop_name}</td>
                 <td>{`${customer.first_name} ${customer.last_name}`}</td>
                 <td>{customer.email}</td>
+                <td>{customer.contact_number}</td>
                 <td>{customer.secondary_contact}</td>
-                <td>{customer.address}</td>
+              
                 <td>{customer.other_info}</td>
 
                 <td>
