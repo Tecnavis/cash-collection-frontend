@@ -8,12 +8,8 @@ const CompanyMainContent = () => {
     <div className="main-content">
         <div className="row">
             <div className="col-12">
-                {/* <div className="panel"> */}
-                    {/* <CompanyHeader/> */}
                     <div className="panel-body">
-                        {/* <CompanyFilter/> */}
                         <CompanyTable/>
-                    {/* </div> */}
                 </div>
             </div>
         </div>

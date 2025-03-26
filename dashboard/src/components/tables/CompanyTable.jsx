@@ -7,14 +7,14 @@ import Cookies from "js-cookie";
 
 const AllCustomerTable = () => {
   const [formData, setFormData] = useState({
+    profileId: "",
     username: "",
-    password: "", 
     first_name: "",
     last_name: "",
-    email: "",
     contact_number: "",
     secondary_contact: "",
-    address: "",
+    email: "",
+    password: "",
     other_info: "",
   });
 
@@ -24,9 +24,6 @@ const AllCustomerTable = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
-  const breadcrumbLink =
-    formData.partner_type === "vendor" ? "/supplier" : "/allCustomer";
 
   const validateForm = () => {
     const { email, contact_number, password } = formData;
@@ -66,14 +63,14 @@ const AllCustomerTable = () => {
 
       setMessage("User profile created successfully!");
       setFormData({
+        profileId: "",
         username: "",
-        password: "",
         first_name: "",
         last_name: "",
-        email: "",
         contact_number: "",
         secondary_contact: "",
-        address: "",
+        email: "",
+        password: "",
         other_info: "",
       });
 
@@ -90,7 +87,7 @@ const AllCustomerTable = () => {
 
   return (
     <div className="main-content">
-      <AddNewBreadcrumb link={breadcrumbLink} title={"Add Customer"} />
+      <AddNewBreadcrumb link="/allCustomer" title="Add Customer" />
       <div className="row">
         <div className="col-12">
           <div className="panel">
@@ -100,121 +97,49 @@ const AllCustomerTable = () => {
             <div className="panel-body">
               <form onSubmit={handleSubmit}>
                 <div className="row g-3">
-                  <div className="col-xxl-3 col-lg-4 col-sm-6">
-                    <label className="form-label">Username</label>
-                    <input
-                      type="text"
-                      name="username"
-                      className="form-control form-control-sm"
-                      value={formData.username}
-                      onChange={handleChange}
-                      required
-                    />
+                  <div className="col-sm-6">
+                    <label className="form-label">Profile ID</label>
+                    <input type="text" name="profileId" className="form-control" value={formData.profileId} onChange={handleChange} required />
                   </div>
-
-                  <div className="col-xxl-3 col-lg-4 col-sm-6">
-                    <label className="form-label">Password</label>
-                    <input
-                      type="password"
-                      name="password"
-                      className="form-control form-control-sm"
-                      value={formData.password}
-                      onChange={handleChange}
-                      required
-                    />
+                  <div className="col-sm-6">
+                    <label className="form-label">Shop Name</label>
+                    <input type="text" name="username" className="form-control" value={formData.username} onChange={handleChange} required />
                   </div>
-
-                  <div className="col-xxl-3 col-lg-4 col-sm-6">
+                  <div className="col-sm-6">
                     <label className="form-label">First Name</label>
-                    <input
-                      type="text"
-                      name="first_name"
-                      className="form-control form-control-sm"
-                      value={formData.first_name}
-                      onChange={handleChange}
-                      required
-                    />
+                    <input type="text" name="first_name" className="form-control" value={formData.first_name} onChange={handleChange} required />
                   </div>
-
-                  <div className="col-xxl-3 col-lg-4 col-sm-6">
+                  <div className="col-sm-6">
                     <label className="form-label">Last Name</label>
-                    <input
-                      type="text"
-                      name="last_name"
-                      className="form-control form-control-sm"
-                      value={formData.last_name}
-                      onChange={handleChange}
-                      required
-                    />
+                    <input type="text" name="last_name" className="form-control" value={formData.last_name} onChange={handleChange} required />
                   </div>
-
-                  <div className="col-xxl-3 col-lg-4 col-sm-6">
-                    <label className="form-label">Email</label>
-                    <input
-                      type="email"
-                      name="email"
-                      className="form-control form-control-sm"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-
-                  <div className="col-xxl-3 col-lg-4 col-sm-6">
+                  <div className="col-sm-6">
                     <label className="form-label">Contact Number</label>
-                    <input
-                      type="tel"
-                      name="contact_number"
-                      className="form-control form-control-sm"
-                      value={formData.contact_number}
-                      onChange={handleChange}
-                      required
-                    />
+                    <input type="tel" name="contact_number" className="form-control" value={formData.contact_number} onChange={handleChange} required />
                   </div>
-
-                  <div className="col-xxl-3 col-lg-4 col-sm-6">
+                  <div className="col-sm-6">
                     <label className="form-label">Secondary Contact</label>
-                    <input
-                      type="tel"
-                      name="secondary_contact"
-                      className="form-control form-control-sm"
-                      value={formData.secondary_contact}
-                      onChange={handleChange}
-                    />
+                    <input type="tel" name="secondary_contact" className="form-control" value={formData.secondary_contact} onChange={handleChange} />
                   </div>
-
-                  <div className="col-xxl-3 col-lg-4 col-sm-6">
-                    <label className="form-label">Address</label>
-                    <textarea
-                      name="address"
-                      className="form-control form-control-sm"
-                      value={formData.address}
-                      onChange={handleChange}
-                    />
+                  <div className="col-sm-6">
+                    <label className="form-label">Email Address</label>
+                    <input type="email" name="email" className="form-control" value={formData.email} onChange={handleChange} required />
                   </div>
-
-                  <div className="col-xxl-3 col-lg-4 col-sm-6">
+                  <div className="col-sm-6">
+                    <label className="form-label">Password</label>
+                    <input type="password" name="password" className="form-control" value={formData.password} onChange={handleChange} required />
+                  </div>
+                  <div className="col-sm-12">
                     <label className="form-label">Other Info</label>
-                    <textarea
-                      name="other_info"
-                      className="form-control form-control-sm"
-                      value={formData.other_info}
-                      onChange={handleChange}
-                    />
+                    <textarea name="other_info" className="form-control" value={formData.other_info} onChange={handleChange} />
                   </div>
                 </div>
-
                 <div className="mt-3">
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={loading}
-                  >
-                    {loading ? "Creating..." : "Create Partner"}
+                  <button type="submit" className="btn btn-primary" disabled={loading}>
+                    {loading ? "Creating..." : "Create Customer"}
                   </button>
                 </div>
               </form>
-
               {message && <p className="mt-2 text-info">{message}</p>}
             </div>
           </div>
