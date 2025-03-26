@@ -104,42 +104,7 @@ const AllCollectionCustomerTable = () => {
       setLoading(false);
     }
   };
-  
-  // const handleViewEmployee = async (id) => {
-  //   if (!id) {
-  //     console.error("Invalid employee ID:", id);
-  //     return;
-  //   }
-  
-  //   try {
-  //     const token = Cookies.get("access_token");
-  //     const response = await fetch(`${BASE_URL}/partner/customers/${id}/`, {
-  //       method: "GET",
-  //       headers: {
-  //         "Authorization": `Bearer ${token}`,
-  //         "Content-Type": "application/json",
-  //       },
-  //     });
-  
-  //     if (!response.ok) {
-  //       throw new Error("Failed to fetch employee details");
-  //     }
-  
-  //     const data = await response.json();
-  //     if (!data || !data.id) {
-  //       throw new Error("Invalid data received");
-  //     }
-  
-  //     // Ensure `isEditing` is NOT set or is set to false
-  //     setSelectedEmployee({ ...data, isEditing: false });
-  
-  //     // Ensure modal opens
-  //     setShowModal(true);
-  //   } catch (error) {
-  //     console.error("Error fetching employee details:", error);
-  //   }
-  // };
-    const handleOpenEditModal = (customer) => {
+      const handleOpenEditModal = (customer) => {
       setSelectedEmployee({ ...customer, isEditing: true });
       setShowModal(true);
   };
@@ -214,8 +179,6 @@ const AllCollectionCustomerTable = () => {
           fetchCustomers(); 
         }
       };
-
-
   const currentData = dataList.slice((currentPage - 1) * dataPerPage, currentPage * dataPerPage);
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   if (loading) return <p>Loading customers...</p>;
@@ -390,75 +353,35 @@ const AllCollectionCustomerTable = () => {
                       </div>
                     </div>
                   </div>
-                </div>
-              
+                </div>  
               ) : (
-
-    // View Modal
-        // <div className="modal fade show d-block" tabIndex="-1" role="dialog">
-        //   <div className="modal-dialog modal-dialog-centered">
-        //     <div className="modal-content shadow-lg border-0 rounded">
-        //       <div className="modal-header bg-primary text-white">
-        //         <h5 className="modal-title">Employee Details</h5>
-        //         <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
-        //       </div>
-        //       <div className="modal-body p-4 text-center">
-        //         <i className="fa-solid fa-user-circle fa-4x text-primary mb-3"></i>
-        //         <p><strong>Profile ID:</strong> {selectedEmployee.id || "N/A"}</p>
-        //         <p><strong>Other Info:</strong> {selectedEmployee.other_info || "N/A"}</p>
-        //         <p><strong>Email:</strong> {selectedEmployee.user.email || "N/A"}</p>
-        //         <p><strong>Name:</strong> {selectedEmployee.user.first_name} {selectedEmployee.last_name}</p>
-        //         <p><strong>Phone:</strong> {selectedEmployee.secondary_contact || "N/A"}</p>
-        //         <p><strong>Address:</strong> {selectedEmployee.address || "N/A"}</p>
-        //       </div>
-        //       <div className="modal-footer justify-content-center">
-        //         <button type="button" className="btn btn-danger px-4" onClick={() => setShowModal(false)}>
-        //           Close
-        //         </button>
-        //       </div>
-        //     </div>
-        //   </div>
-        // </div>
         <div className="modal fade show d-block" tabIndex="-1" role="dialog">
-  <div className="modal-dialog modal-dialog-centered">
-    <div className="modal-content shadow-lg border-0 rounded">
-      <div className="modal-header bg-primary text-white">
-        <h5 className="modal-title">Employee Details</h5>
-        <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
-      </div>
-      <div className="modal-body p-4 text-center">
-        <i className="fa-solid fa-user-circle fa-4x text-primary mb-3"></i>
-
-        {/* Profile ID */}
-        <p><strong>Profile ID:</strong> {selectedEmployee.id || "N/A"}</p>
-
-        {/* Name */}
-        <p>
-          <strong>Name:</strong> 
-          {selectedEmployee.user?.first_name || "N/A"} {selectedEmployee.user?.last_name || ""}
-        </p>
-
-        {/* Email */}
-        <p><strong>Email:</strong> {selectedEmployee.user?.email || "N/A"}</p>
-
-        {/* Phone Number */}
-        <p><strong>Phone:</strong> {selectedEmployee.secondary_contact || "N/A"}</p>
-
-        {/* Address */}
-        <p><strong>Address:</strong> {selectedEmployee.address || "N/A"}</p>
-
-        {/* Other Info */}
-        <p><strong>Other Info:</strong> {selectedEmployee.other_info || "N/A"}</p>
-      </div>
-      <div className="modal-footer justify-content-center">
-        <button type="button" className="btn btn-danger px-4" onClick={() => setShowModal(false)}>
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content shadow-lg border-0 rounded">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title">Employee Details</h5>
+                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+              </div>
+              <div className="modal-body p-4 text-center">
+                <i className="fa-solid fa-user-circle fa-4x text-primary mb-3"></i>
+                <p><strong>Profile ID:</strong> {selectedEmployee.id || "N/A"}</p>
+                <p>
+                  <strong>Name:</strong> 
+                  {selectedEmployee.user?.first_name || "N/A"} {selectedEmployee.user?.last_name || ""}
+                </p>
+                <p><strong>Email:</strong> {selectedEmployee.user?.email || "N/A"}</p>
+                <p><strong>Phone:</strong> {selectedEmployee.secondary_contact || "N/A"}</p>
+                <p><strong>Address:</strong> {selectedEmployee.address || "N/A"}</p>
+                <p><strong>Other Info:</strong> {selectedEmployee.other_info || "N/A"}</p>
+              </div>
+              <div className="modal-footer justify-content-center">
+                <button type="button" className="btn btn-danger px-4" onClick={() => setShowModal(false)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )
     )}
       </OverlayScrollbarsComponent>
