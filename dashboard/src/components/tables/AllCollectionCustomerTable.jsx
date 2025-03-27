@@ -13,7 +13,7 @@ const AllCollectionCustomerTable = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [dataPerPage] = useState(10);
+  const [dataPerPage] = useState(300);
   const [dataList, setDataList] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
