@@ -16,7 +16,8 @@ const AllCollectionCustomerTable = () => {
   const [dataPerPage] = useState(300);
   const [dataList, setDataList] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedEmployee, setSelectedEmployee] = useState(null); 
+  const [originalEmployee, setOriginalEmployee] = useState(null);
 
   const dropdownRef = useRef(null);
 
@@ -65,7 +66,7 @@ const AllCollectionCustomerTable = () => {
       return;
     }
   
-    setLoading(true); // Start loading state
+    setLoading(true);
   
     try {
       const token = Cookies.get("access_token");
@@ -85,18 +86,20 @@ const AllCollectionCustomerTable = () => {
       if (!data || !data.id) {
         throw new Error("Invalid data received");
       }
-      const updatedEmployee = {
-        profile_id: data.id || "", 
-        first_name: data.first_name || "",
-        last_name: data.last_name || "",
-        email: data.email || "",
-        contact_number: data.contact_number || "",
-        address: data.address || "",
-        other_info: data.other_info || "",
-        isEditing: false, 
-      };
   
-      setSelectedEmployee(updatedEmployee);
+      setSelectedEmployee({
+        profile_id: data.profile_id || "N/A",
+        shop_name: data.shop_name || "N/A",
+        first_name: data.user.first_name || "N/A",
+        last_name: data.user.last_name || "N/A",
+        email: data.user.email || "N/A",
+        contact_number: data.user.contact_number || "N/A",
+        secondary_contact: data.secondary_contact || "N/A",
+        address: data.address || "N/A",
+        other_info: data.other_info || "N/A",
+        isEditing: false, 
+      });
+  
       setShowModal(true);
     } catch (error) {
       console.error("Error fetching employee details:", error);
@@ -104,51 +107,61 @@ const AllCollectionCustomerTable = () => {
       setLoading(false);
     }
   };
-      const handleOpenEditModal = (customer) => {
+  
+    const handleOpenEditModal = (customer) => {
       setSelectedEmployee({ ...customer, isEditing: true });
+      setOriginalEmployee({ ...customer });
       setShowModal(true);
   };
 
-    const handleUpdateEmployee = async () => {
+  const handleEditClick = (employee) => {
+      setOriginalEmployee({ ...employee }); 
+      setSelectedEmployee({ ...employee }); 
+  };
+
+
+  const handleUpdateEmployee = async () => {
       if (!selectedEmployee || !selectedEmployee.id) {
-          console.error("No employee selected for update.");
           return;
       }
+      if (!originalEmployee) {
+          return;
+      }
+      const userPayload = {
+          first_name: selectedEmployee.first_name || "",
+          last_name: selectedEmployee.last_name || "",
+          contact_number: selectedEmployee.contact_number || ""
+      };
 
+      if (selectedEmployee.email !== originalEmployee.email) {
+          userPayload.email = selectedEmployee.email || "";
+      }
       try {
-          const response = await fetch(`${BASE_URL}/partner/customers/${selectedEmployee.id}/`, {
-              method: "PUT",
+          const response = await fetch(`${BASE_URL}/partner/customers/${selectedEmployee.id}/update`, {
+              method: "PATCH",
               headers: {
                   "Content-Type": "application/json",
                   "Authorization": `Bearer ${Cookies.get("access_token")}`
               },
               body: JSON.stringify({
-                  profile_id: selectedEmployee.id, // Allow updating profile_id
+                  profile_id: selectedEmployee.profile_id || selectedEmployee.id,
                   shop_name: selectedEmployee.shop_name || "",
-                  user: {
-                      first_name: selectedEmployee.first_name || "",
-                      last_name: selectedEmployee.last_name || "",
-                      email: selectedEmployee.email || "",
-                      contact_number: selectedEmployee.contact_number || ""
-                  },
                   secondary_contact: selectedEmployee.secondary_contact || "",
                   address: selectedEmployee.address || "",
-                  other_info: selectedEmployee.other_info || ""
+                  other_info: selectedEmployee.other_info || "",
+                  user: userPayload  
               }),
           });
 
           if (!response.ok) {
               const errorData = await response.json();
-              console.error("Error updating employee:", errorData);
-              alert(`Failed to update employee: ${errorData.message || "Unknown error"}`);
+              const errorMessage = errorData.message || errorData.detail || "Unknown error";
+              console.error("Error updating employee:", errorMessage);
+              alert(`Failed to update employee: ${errorMessage}`);
               return;
           }
-
           const updatedData = await response.json();
-          console.log("Updated Employee:", updatedData);
-          fetchCustomers(); 
-
-          // Close modal
+          fetchCustomers(currentPage);
           setShowModal(false);
 
       } catch (error) {
@@ -156,6 +169,7 @@ const AllCollectionCustomerTable = () => {
           alert("A network error occurred. Please try again later.");
       }
   };
+
     const handleDeleteEmployee = async (id) => {
         if (window.confirm("Are you sure you want to delete this employee?")) {
           try {
@@ -211,7 +225,6 @@ const AllCollectionCustomerTable = () => {
                 <td>{customer.contact_number}</td>
                 <td>{customer.secondary_contact}</td>
                 <td>{customer.other_info}</td>
-
                 <td>
                   <i
                     className="fa-light fa-eye text me-3 cursor-pointer"
@@ -246,7 +259,7 @@ const AllCollectionCustomerTable = () => {
                   <div className="modal-dialog modal-dialog-centered">
                     <div className="modal-content">
                       <div className="modal-header">
-                        <h5 className="modal-title">Update Employee</h5>
+                        <h5 className="modal-title">Update Customer</h5>
                         <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
                       </div>
                       <div className="modal-body">
@@ -263,8 +276,19 @@ const AllCollectionCustomerTable = () => {
                               }
                             />
                           </div>
-              
-                          {/* First Name */}
+                          {/* Shop Name */}
+                          <div className="mb-3">
+                            <label className="form-label">Shop Name</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={selectedEmployee.shop_name || ""}
+                              onChange={(e) =>
+                                setSelectedEmployee({ ...selectedEmployee, shop_name: e.target.value })
+                              }
+                            />
+                          </div>
+                         
                           <div className="mb-3">
                             <label className="form-label">First Name</label>
                             <input
@@ -276,8 +300,7 @@ const AllCollectionCustomerTable = () => {
                               }
                             />
                           </div>
-              
-                          {/* Last Name */}
+                      
                           <div className="mb-3">
                             <label className="form-label">Last Name</label>
                             <input
@@ -289,8 +312,7 @@ const AllCollectionCustomerTable = () => {
                               }
                             />
                           </div>
-              
-                          {/* Email */}
+                         
                           <div className="mb-3">
                             <label className="form-label">Email</label>
                             <input
@@ -302,8 +324,7 @@ const AllCollectionCustomerTable = () => {
                               }
                             />
                           </div>
-              
-                          {/* Contact Number */}
+                         
                           <div className="mb-3">
                             <label className="form-label">Contact Number</label>
                             <input
@@ -315,8 +336,7 @@ const AllCollectionCustomerTable = () => {
                               }
                             />
                           </div>
-              
-                          {/* Address */}
+                         
                           <div className="mb-3">
                             <label className="form-label">Address</label>
                             <input
@@ -328,8 +348,7 @@ const AllCollectionCustomerTable = () => {
                               }
                             />
                           </div>
-              
-                          {/* Other Info */}
+                        
                           <div className="mb-3">
                             <label className="form-label">Other Info</label>
                             <input
@@ -355,33 +374,32 @@ const AllCollectionCustomerTable = () => {
                   </div>
                 </div>  
               ) : (
-        <div className="modal fade show d-block" tabIndex="-1" role="dialog">
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content shadow-lg border-0 rounded">
-              <div className="modal-header bg-primary text-white">
-                <h5 className="modal-title">Employee Details</h5>
-                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
-              </div>
-              <div className="modal-body p-4 text-center">
-                <i className="fa-solid fa-user-circle fa-4x text-primary mb-3"></i>
-                <p><strong>Profile ID:</strong> {selectedEmployee.id || "N/A"}</p>
-                <p>
-                  <strong>Name:</strong> 
-                  {selectedEmployee.user?.first_name || "N/A"} {selectedEmployee.user?.last_name || ""}
-                </p>
-                <p><strong>Email:</strong> {selectedEmployee.user?.email || "N/A"}</p>
-                <p><strong>Phone:</strong> {selectedEmployee.secondary_contact || "N/A"}</p>
-                <p><strong>Address:</strong> {selectedEmployee.address || "N/A"}</p>
-                <p><strong>Other Info:</strong> {selectedEmployee.other_info || "N/A"}</p>
-              </div>
-              <div className="modal-footer justify-content-center">
-                <button type="button" className="btn btn-danger px-4" onClick={() => setShowModal(false)}>
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+                <div className="modal fade show d-block" tabIndex="-1" role="dialog">
+                      <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content shadow-lg border-0 rounded">
+                          <div className="modal-header bg-primary text-white">
+                            <h5 className="modal-title">Customer Details</h5>
+                            <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+                          </div>
+                          <div className="modal-body p-4 text-center">
+                            <i className="fa-solid fa-user-circle fa-4x text-primary mb-3"></i>
+                            <p><strong>Profile ID:</strong> {selectedEmployee?.profile_id || "N/A"}</p>
+                            <p><strong>Shop Name:</strong> {selectedEmployee?.shop_name || "N/A"}</p>
+                            <p><strong>Name:</strong> {selectedEmployee?.first_name || "N/A"} {selectedEmployee?.last_name || ""}</p>
+                            <p><strong>Email:</strong> {selectedEmployee?.email || "N/A"}</p>
+                            <p><strong>Primary Contact:</strong> {selectedEmployee?.contact_number || "N/A"}</p>
+                            <p><strong>Secondary Contact:</strong> {selectedEmployee?.secondary_contact || "N/A"}</p>
+                            <p><strong>Address:</strong> {selectedEmployee?.shop_name || "N/A"}</p>
+                            <p><strong>Other Info:</strong> {selectedEmployee?.other_info || "N/A"}</p>
+                          </div>
+                          <div className="modal-footer justify-content-center">
+                            <button type="button" className="btn btn-danger px-4" onClick={() => setShowModal(false)}>
+                              Close
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
       )
     )}
       </OverlayScrollbarsComponent>
@@ -391,7 +409,6 @@ const AllCollectionCustomerTable = () => {
         paginate={paginate}
         pageNumbers={Array.from({ length: totalPages }, (_, i) => i + 1)}
       />
-      
     </>
   );
 };
