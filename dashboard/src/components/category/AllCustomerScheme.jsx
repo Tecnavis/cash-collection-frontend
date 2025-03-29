@@ -1,5 +1,3 @@
-
-
 import React, { useContext, useState, useEffect } from 'react';
 import { Form, Button, Modal } from 'react-bootstrap';
 import axios from 'axios';
@@ -118,7 +116,6 @@ const AllCustomerSchemes = () => {
                                             <td>{scheme?.end_date || '-'}</td>
                                             <td>{scheme?.customer_name || '-'}</td>
                                             <td>
-                                                {/* <Button variant="primary" size="sm" onClick={() => handleEditClick(scheme)}>Edit</Button>{' '} */}
                                                 <Button variant="danger" size="sm" onClick={() => handleDeleteClick(scheme)}>Delete</Button>
                                             </td>
                                         </tr>
@@ -133,39 +130,6 @@ const AllCustomerSchemes = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Edit Modal */}
-            {/* <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Edit Scheme</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    {selectedScheme && (
-                        <Form>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Scheme Name</Form.Label>
-                                <Form.Control type="text" name="scheme_name" value={selectedScheme.scheme_name} onChange={handleEditChange} />
-                            </Form.Group>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Customer Name</Form.Label>
-                                <Form.Control type="text" name="customer_name" value={selectedScheme.customer_name} onChange={handleEditChange} />
-                            </Form.Group>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Start Date</Form.Label>
-                                <Form.Control type="date" name="start_date" value={selectedScheme.start_date} readOnly />
-                            </Form.Group>
-                            <Form.Group className="mb-3">
-                                <Form.Label>End Date</Form.Label>
-                                <Form.Control type="date" name="end_date" value={selectedScheme.end_date} readOnly />
-                            </Form.Group>
-                        </Form>
-                    )}
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowEditModal(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={handleEditSubmit}>Save Changes</Button>
-                </Modal.Footer>
-            </Modal> */}
 
             {/* Delete Modal */}
             <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>

@@ -13,7 +13,6 @@ const AddCollectionPlan = () => {
     collection_date: new Date().toISOString().split("T")[0],
     notes: "",
   });
-
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");

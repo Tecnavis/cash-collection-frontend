@@ -33,7 +33,6 @@ const customStyles = {
         fontSize: "14px",
     }),
 };
-
 const AddCashCollection = () => {
     const [formData, setFormData] = useState({
         scheme: null,
@@ -73,7 +72,7 @@ const AddCashCollection = () => {
             const selectedScheme = schemes.find((scheme) => scheme.id === selectedOption.value);
             setFormData({
                 ...formData,
-                scheme: selectedOption, // Storing entire object for displaying selected name
+                scheme: selectedOption, 
                 start_date: selectedScheme?.start_date || "",
                 end_date: selectedScheme?.end_date || "",
             });
@@ -153,17 +152,23 @@ const AddCashCollection = () => {
                             <div className="col-12">
                                 <label className="form-label">Customer</label>
                                 <ReactSelect
-                                    styles={customStyles}
-                                    value={formData.customer}
-                                    options={customers.map((customer) => ({
-                                        value: customer.id,
-                                        label: `${customer.user.first_name} ${customer.user.last_name} (${customer.user.email} - ${customer.profile_id})`,
-                                    }))}
-                                    placeholder="Select Customer"
-                                    onChange={handleCustomerSelect}
-                                    isSearchable={true}
-                                />
+                                        styles={customStyles}
+                                        value={formData.customer}
+                                        options={customers.map((customer) => ({
+                                            value: customer.id,
+                                            label: `${customer.shop_name ? customer.shop_name + " - " : ""}${
+                                                customer.user.first_name && customer.user.last_name
+                                                    ? `${customer.user.first_name} ${customer.user.last_name}`
+                                                    : ""
+                                            } (${customer.user.email} - ${customer.profile_id})`,
+                                        }))}
+                                        placeholder="Select Customer"
+                                        onChange={handleCustomerSelect}
+                                        isSearchable={true}
+                                    />
                             </div>
+
+
 
                             {/* Start Date */}
                             <div className="col-12">
@@ -206,5 +211,4 @@ const AddCashCollection = () => {
         </div>
     );
 };
-
 export default AddCashCollection;
