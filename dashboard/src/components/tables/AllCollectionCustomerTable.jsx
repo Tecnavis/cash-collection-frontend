@@ -137,7 +137,7 @@ const AllCollectionCustomerTable = () => {
           userPayload.email = selectedEmployee.email || "";
       }
       try {
-          const response = await fetch(`${BASE_URL}/partner/customers/${selectedEmployee.id}/update`, {
+          const response = await fetch(`${BASE_URL}/partner/customers/${selectedEmployee.id}/update/`, {
               method: "PATCH",
               headers: {
                   "Content-Type": "application/json",
