@@ -2,17 +2,48 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { BASE_URL } from "../../api";
 import Cookies from "js-cookie";
-import ReactSelect from 'react-select'; 
+import ReactSelect from "react-select";
+
+const customStyles = {
+    control: (provided, state) => ({
+        ...provided,
+        background: "#fff",
+        borderColor: state.isFocused ? "#007bff" : "#ced4da",
+        minHeight: "38px",
+        height: "38px",
+        boxShadow: state.isFocused ? "0 0 0 2px rgba(0, 123, 255, 0.25)" : "none",
+        "&:hover": {
+            borderColor: "#007bff",
+        },
+    }),
+    placeholder: (provided) => ({
+        ...provided,
+        color: "#6c757d",
+        fontSize: "14px",
+    }),
+    option: (provided, state) => ({
+        ...provided,
+        backgroundColor: state.isSelected ? "#007bff" : state.isFocused ? "#e9f5ff" : "#fff",
+        color: state.isSelected ? "#fff" : "#333",
+        padding: "10px",
+    }),
+    singleValue: (provided) => ({
+        ...provided,
+        color: "#333",
+        fontSize: "14px",
+    }),
+};
 
 const AddCashCollection = () => {
     const [formData, setFormData] = useState({
-        scheme: "",
+        scheme: null,
         start_date: "",
         end_date: "",
-        customer: "",  
+        customer: null,
     });
+
     const [schemes, setSchemes] = useState([]);
-    const [customers, setCustomers] = useState([]); 
+    const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
@@ -37,24 +68,22 @@ const AddCashCollection = () => {
         fetchData();
     }, []);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    // Function to handle scheme selection
-    const handleSchemeSelect = (e) => {
-        const schemeId = parseInt(e.target.value, 10);
-        const selectedScheme = schemes.find(scheme => scheme.id === schemeId);
-
-        if (selectedScheme) {
+    const handleSchemeSelect = (selectedOption) => {
+        if (selectedOption) {
+            const selectedScheme = schemes.find((scheme) => scheme.id === selectedOption.value);
             setFormData({
                 ...formData,
-                scheme: schemeId,
-                start_date: selectedScheme.start_date,
-                end_date: selectedScheme.end_date
+                scheme: selectedOption, // Storing entire object for displaying selected name
+                start_date: selectedScheme?.start_date || "",
+                end_date: selectedScheme?.end_date || "",
             });
+        } else {
+            setFormData({ ...formData, scheme: null, start_date: "", end_date: "" });
         }
+    };
+
+    const handleCustomerSelect = (selectedOption) => {
+        setFormData((prev) => ({ ...prev, customer: selectedOption || null }));
     };
 
     const handleSubmit = async (e) => {
@@ -70,15 +99,23 @@ const AddCashCollection = () => {
         }
 
         try {
-            await axios.post(`${BASE_URL}/cashcollection/cashcollection/create/`, formData, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${Cookies.get("access_token")}`,
+            await axios.post(
+                `${BASE_URL}/cashcollection/cashcollection/create/`,
+                {
+                    scheme: formData.scheme?.value, // Sending only ID
+                    customer: formData.customer?.value, // Sending only ID
+                    start_date: formData.start_date,
+                    end_date: formData.end_date,
                 },
-            });
-
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${Cookies.get("access_token")}`,
+                    },
+                }
+            );
             setSuccess(true);
-            setFormData({ scheme: "", start_date: "", end_date: "", customer: "" });
+            setFormData({ scheme: null, start_date: "", end_date: "", customer: null });
         } catch (err) {
             console.error("Error details:", err.response?.data || err.message);
             setError(err.response?.data?.error || "Failed to create collection. Please try again.");
@@ -96,40 +133,39 @@ const AddCashCollection = () => {
                 <div className="panel-body">
                     <form onSubmit={handleSubmit}>
                         <div className="row g-3">
+                            {/* Scheme Dropdown with Search */}
                             <div className="col-12">
                                 <label className="form-label">Scheme</label>
-                                <select
-                                    className="form-control form-control-sm"
-                                    name="scheme"
+                                <ReactSelect
+                                    styles={customStyles}
                                     value={formData.scheme}
+                                    options={schemes.map((scheme) => ({
+                                        value: scheme.id,
+                                        label: `${scheme.name} (${scheme.scheme_number})`,
+                                    }))}
+                                    placeholder="Select Scheme"
                                     onChange={handleSchemeSelect}
-                                    required
-                                >
-                                    <option value="">Select Scheme</option>
-                                    {schemes.map((scheme) => (
-                                        <option key={scheme.id} value={scheme.id}>
-                                            {scheme.name} ({scheme.scheme_number})
-                                        </option>
-                                    ))}
-                                </select>
+                                    isSearchable={true}
+                                />
                             </div>
+
+                            {/* Customer Dropdown with Search */}
                             <div className="col-12">
                                 <label className="form-label">Customer</label>
                                 <ReactSelect
-                                    className="form-control form-control-sm"
-                                    name="customer"
-                                    value={customers.find((c) => c.id === formData.customer) || null}
+                                    styles={customStyles}
+                                    value={formData.customer}
                                     options={customers.map((customer) => ({
                                         value: customer.id,
-                                        label: `${customer.user.first_name} ${customer.user.last_name} (${customer.user.email}(${customer.profile_id})`,
+                                        label: `${customer.user.first_name} ${customer.user.last_name} (${customer.user.email} - ${customer.profile_id})`,
                                     }))}
                                     placeholder="Select Customer"
-                                    onChange={(selectedOption) =>
-                                        handleInputChange("customer", selectedOption ? selectedOption.value : "")
-                                    }
-                                    isSearchable={true} // Enables search
+                                    onChange={handleCustomerSelect}
+                                    isSearchable={true}
                                 />
                             </div>
+
+                            {/* Start Date */}
                             <div className="col-12">
                                 <label className="form-label">Start Date</label>
                                 <input
@@ -137,10 +173,12 @@ const AddCashCollection = () => {
                                     className="form-control form-control-sm"
                                     name="start_date"
                                     value={formData.start_date}
-                                    onChange={handleChange}
+                                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                                     required
                                 />
                             </div>
+
+                            {/* End Date */}
                             <div className="col-12">
                                 <label className="form-label">End Date</label>
                                 <input
@@ -148,10 +186,12 @@ const AddCashCollection = () => {
                                     className="form-control form-control-sm"
                                     name="end_date"
                                     value={formData.end_date}
-                                    onChange={handleChange}
+                                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                                     required
                                 />
                             </div>
+
+                            {/* Submit Button */}
                             <div className="col-12 d-flex justify-content-end">
                                 <button className="btn btn-sm btn-primary" type="submit" disabled={loading}>
                                     {loading ? "Saving..." : "Save Collection"}
