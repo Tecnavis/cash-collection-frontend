@@ -66,7 +66,6 @@ const AddCashCollection = () => {
         };
         fetchData();
     }, []);
-
     const handleSchemeSelect = (selectedOption) => {
         if (selectedOption) {
             const selectedScheme = schemes.find((scheme) => scheme.id === selectedOption.value);
@@ -80,7 +79,6 @@ const AddCashCollection = () => {
             setFormData({ ...formData, scheme: null, start_date: "", end_date: "" });
         }
     };
-
     const handleCustomerSelect = (selectedOption) => {
         setFormData((prev) => ({ ...prev, customer: selectedOption || null }));
     };
@@ -122,7 +120,6 @@ const AddCashCollection = () => {
             setLoading(false);
         }
     };
-
     return (
         <div className="col-xxl-4 col-md-5">
             <div className="panel">
@@ -147,7 +144,6 @@ const AddCashCollection = () => {
                                     isSearchable={true}
                                 />
                             </div>
-
                             {/* Customer Dropdown with Search */}
                             <div className="col-12">
                                 <label className="form-label">Customer</label>
@@ -160,16 +156,13 @@ const AddCashCollection = () => {
                                                 customer.user.first_name && customer.user.last_name
                                                     ? `${customer.user.first_name} ${customer.user.last_name}`
                                                     : ""
-                                            } (${customer.user.email} - ${customer.profile_id})`,
+                                            } (${customer.user.contact_number} - ${customer.profile_id})`,
                                         }))}
                                         placeholder="Select Customer"
                                         onChange={handleCustomerSelect}
                                         isSearchable={true}
                                     />
                             </div>
-
-
-
                             {/* Start Date */}
                             <div className="col-12">
                                 <label className="form-label">Start Date</label>
