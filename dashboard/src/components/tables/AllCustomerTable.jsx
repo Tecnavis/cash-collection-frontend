@@ -61,7 +61,7 @@ const AllCustomerTable = () => {
       setDataList(customers);
     } else {
       const filteredData = customers.filter((customer) =>
-        `${customer.first_name} ${customer.last_name} ${customer.email}`
+        `${customer.first_name} ${customer.last_name} ${customer.email} ${customer.id} ${customer.contact_number}`
           .toLowerCase()
           .includes(query.toLowerCase())
       );

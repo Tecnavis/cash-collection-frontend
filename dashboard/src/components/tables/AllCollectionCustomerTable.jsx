@@ -68,7 +68,7 @@ const AllCollectionCustomerTable = () => {
       setDataList(customers);
     } else {
       const filteredData = customers.filter((customer) =>
-        `${customer.first_name} ${customer.last_name} ${customer.shop_name} ${customer.email} ${customer.profile_id}`
+        `${customer.first_name} ${customer.last_name} ${customer.shop_name} ${customer.email} ${customer.profile_id} ${customer.contact_number}`
           .toLowerCase()
           .includes(query.toLowerCase())
       );
