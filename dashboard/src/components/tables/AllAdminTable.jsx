@@ -8,22 +8,19 @@ import axios from "axios";
 const AllAdminTable = () => {
   const { isBelowLg } = useContext(DigiContext);
   const [currentPage, setCurrentPage] = useState(1);
-  const [dataPerPage] = useState(10);
+  const [dataPerPage] = useState(100);
   const [dataList, setDataList] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const dropdownRef = useRef(null);
-
   useEffect(() => {
     fetchStaffUsers();
     
   }, []);
-  
   const fetchStaffUsers = async () => {
     try {
       const response = await fetch(`${BASE_URL}/users/staffs/`);
       const result = await response.json();
-  
       if (Array.isArray(result) && result.length > 0) {
         const staffUsers = result.filter(user => user.role === "admin");
         const formattedData = staffUsers.map((user) => ({
@@ -46,7 +43,6 @@ const AllAdminTable = () => {
       setDataList([]);
     }
   };
-
   const handleViewEmployee = async (id) => {
     try {
       const response = await fetch(`${BASE_URL}/users/users/${id}/`);
@@ -57,61 +53,60 @@ const AllAdminTable = () => {
       console.error("Error fetching employee details:", error);
     }
   };
-
   const handleOpenEditModal = (employee) => {
     setSelectedEmployee({ ...employee, isEditing: true });
     setShowModal(true);
 };
-
 const handleUpdateEmployee = async () => {
+  if (!selectedEmployee || !selectedEmployee.employee_id) {
+      console.error("Error: Employee ID is undefined", selectedEmployee);
+      return;
+  }
 
-    if (!selectedEmployee || !selectedEmployee.employee_id) {
-        console.error("Error: Employee ID is undefined", selectedEmployee);
-        return;
-    }
+  try {
+      const apiUrl = `${BASE_URL}/users/admin/${selectedEmployee.employee_id}/`;
+      console.log("API URL:", apiUrl);
 
-    try {
-        const apiUrl = `${BASE_URL}/users/admin/${selectedEmployee.employee_id}/`;
-        console.log("API URL:", apiUrl); 
-        
-        const response = await axios.put(apiUrl, {
-            username: selectedEmployee.username,
-            email: selectedEmployee.email,
-            contact_number: selectedEmployee.contact_number,
-            password: selectedEmployee.password,
-        },{
-          headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${Cookies.get("access_token")}` 
-          }
-    });
-
-        console.log("Update Successful:", response.data);
-    } catch (error) {
-        console.error("Error updating employee:", error.response?.data || error);
-    }
-};
-  const handleDeleteEmployee = async (id) => {
-    if (window.confirm("Are you sure you want to delete this employee?")) {
-      try {
-        const response = await fetch(`${BASE_URL}/users/admin/${id}/delete/`, {
-          method: "DELETE",
-          headers: {
+      const response = await axios.put(apiUrl, {
+          username: selectedEmployee.username,
+          email: selectedEmployee.email,
+          contact_number: selectedEmployee.contact_number,
+          password: selectedEmployee.password,
+      },{
+        headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${Cookies.get("access_token")}`
-          },
-        });
-        if (response.ok) {
-          setDataList(dataList.filter((employee) => employee.employee_id !== id));
-          setShowModal(false); 
+            "Authorization": `Bearer ${Cookies.get("access_token")}` 
         }
-      } catch (error) {
-        console.error("Error deleting employee:", error);
-      }
-    }
-  };
+      });
 
-  const handleDropdownToggle = (event, index) => {
+      console.log("Update Successful:", response.data);
+      setShowModal(false);  // Close the modal
+      fetchStaffUsers();  // Refresh the data after update
+  } catch (error) {
+      console.error("Error updating employee:", error.response?.data || error);
+  }
+};
+
+const handleDeleteEmployee = async (id) => {
+  if (window.confirm("Are you sure you want to delete this employee?")) {
+      try {
+          const response = await fetch(`${BASE_URL}/users/admin/${id}/delete/`, {
+              method: "DELETE",
+              headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${Cookies.get("access_token")}`
+              },
+          });
+          if (response.ok) {
+              setShowModal(false); 
+              fetchStaffUsers();  
+          }
+      } catch (error) {
+          console.error("Error deleting employee:", error);
+      }
+  }
+};
+const handleDropdownToggle = (event, index) => {
     event.stopPropagation();
     setDataList((prevDataList) =>
       prevDataList.map((data, i) => ({
@@ -120,11 +115,9 @@ const handleUpdateEmployee = async () => {
       }))
     );
   };
-
   const currentData = dataList.slice((currentPage - 1) * dataPerPage, currentPage * dataPerPage);
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   const totalPages = Math.ceil(dataList.length / dataPerPage);
-
   return (
     <>
       <table className="table table-dashed table-hover digi-dataTable all-employee-table table-striped">
@@ -199,8 +192,6 @@ const handleUpdateEmployee = async () => {
         </tbody>
       </table>
       {totalPages > 1 && <PaginationSection currentPage={currentPage} totalPages={totalPages} paginate={paginate} />}
-
-      {/* View Employee Modal */}
       {showModal && selectedEmployee && !selectedEmployee.isEditing && (
         <div className="modal fade show d-block" tabIndex="-1" role="dialog">
           <div className="modal-dialog modal-dialog-centered">
@@ -234,7 +225,6 @@ const handleUpdateEmployee = async () => {
           </div>
         </div>
       )}
-      {/* Edit Employee Modal */}
       {showModal && selectedEmployee?.isEditing && (
         <div className="modal fade show d-block" tabIndex="-1" role="dialog">
           <div className="modal-dialog modal-dialog-centered">
@@ -250,7 +240,6 @@ const handleUpdateEmployee = async () => {
                     handleUpdateEmployee();
                   }}
                 >
-                  {/* Username Field */}
                   <div className="mb-3">
                     <label className="form-label">Name</label>
                     <input
@@ -263,8 +252,6 @@ const handleUpdateEmployee = async () => {
                       required
                     />
                   </div>
-
-                  {/* Email Field */}
                   <div className="mb-3">
                     <label className="form-label">Email</label>
                     <input
@@ -277,8 +264,6 @@ const handleUpdateEmployee = async () => {
                       required
                     />
                   </div>
-
-                  {/* Contact Number Field */}
                   <div className="mb-3">
                     <label className="form-label">Phone</label>
                     <input
@@ -290,8 +275,6 @@ const handleUpdateEmployee = async () => {
                       }
                     />
                   </div>
-
-                  {/* Password Field (Leave Empty for New Password) */}
                   <div className="mb-3">
                     <label className="form-label">New Password</label>
                     <input
@@ -303,8 +286,6 @@ const handleUpdateEmployee = async () => {
                       }
                     />
                   </div>
-
-                  {/* Modal Footer */}
                   <div className="modal-footer justify-content-center">
                     <button type="submit" className="btn btn-success px-4">
                       Save
@@ -326,7 +307,6 @@ const handleUpdateEmployee = async () => {
     </>
   );
 };
-
 export default AllAdminTable;
 
 
