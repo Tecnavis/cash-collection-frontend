@@ -99,8 +99,8 @@ const AddCashCollection = () => {
             await axios.post(
                 `${BASE_URL}/cashcollection/cashcollection/create/`,
                 {
-                    scheme: formData.scheme?.value, // Sending only ID
-                    customer: formData.customer?.value, // Sending only ID
+                    scheme: formData.scheme?.value, 
+                    customer: formData.customer?.value,
                     start_date: formData.start_date,
                     end_date: formData.end_date,
                 },
@@ -147,21 +147,22 @@ const AddCashCollection = () => {
                             {/* Customer Dropdown with Search */}
                             <div className="col-12">
                                 <label className="form-label">Customer</label>
-                                <ReactSelect
+                                 <ReactSelect
                                         styles={customStyles}
                                         value={formData.customer}
                                         options={customers.map((customer) => ({
                                             value: customer.id,
-                                            label: `${customer.shop_name ? customer.shop_name + " - " : ""}${
+                                            label: `(${customer.profile_id}) - ${customer.shop_name ? customer.shop_name + " - " : ""}${
                                                 customer.user.first_name && customer.user.last_name
                                                     ? `${customer.user.first_name} ${customer.user.last_name}`
                                                     : ""
-                                            } (${customer.user.contact_number} - ${customer.profile_id})`,
+                                            } (${customer.user.contact_number})`,
                                         }))}
                                         placeholder="Select Customer"
                                         onChange={handleCustomerSelect}
                                         isSearchable={true}
                                     />
+
                             </div>
                             {/* Start Date */}
                             <div className="col-12">
