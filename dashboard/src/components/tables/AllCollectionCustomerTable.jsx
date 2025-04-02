@@ -134,8 +134,6 @@ const AllCollectionCustomerTable = () => {
       setOriginalEmployee({ ...employee }); 
       setSelectedEmployee({ ...employee }); 
   };
-
-
   const handleUpdateEmployee = async () => {
       if (!selectedEmployee || !selectedEmployee.id) {
           return;

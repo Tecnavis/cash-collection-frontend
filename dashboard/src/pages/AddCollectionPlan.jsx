@@ -4,6 +4,7 @@ import AddNewBreadcrumb from "../components/breadcrumb/AddNewBreadcrumb";
 import axios from "axios";
 import { BASE_URL } from "../api";
 import Cookies from "js-cookie";
+import ReactSelect from "react-select";
 
 const AddCollectionPlan = () => {
   const [formData, setFormData] = useState({
@@ -45,6 +46,18 @@ const AddCollectionPlan = () => {
       setMessage("Failed to load customer schemes. Please refresh the page.");
       setMessageType("error");
     }
+  };
+
+  const customStyles = {
+    control: (provided) => ({
+      ...provided,
+      minHeight: "38px",
+      fontSize: "14px",
+    }),
+  };
+  
+  const handleCustomerSelect = (selectedOption) => {
+    setFormData({ ...formData, customer: selectedOption ? selectedOption.value : "" });
   };
 
   const handleChange = (e) => {
@@ -139,7 +152,6 @@ const AddCollectionPlan = () => {
       setLoading(false);
     }
   };
-
   return (
     <div className="main-content">
       <AddNewBreadcrumb link="/collections" title="Add Collection Entry" />
@@ -152,7 +164,6 @@ const AddCollectionPlan = () => {
             <div className="panel-body">
               <form onSubmit={handleSubmit}>
                 <div className="row g-3">
-                  {/* Scheme Selection */}
                   <div className="col-lg-4 col-sm-6">
                     <label className="form-label">Collection Scheme</label>
                     <select
@@ -170,8 +181,6 @@ const AddCollectionPlan = () => {
                       ))}
                     </select>
                   </div>
-
-                  {/* Total Scheme Amount */}
                   {formData.scheme && (
                     <div className="col-lg-4 col-sm-6">
                       <label className="form-label">Total Scheme Amount</label>
@@ -184,28 +193,33 @@ const AddCollectionPlan = () => {
                     </div>
                   )}
 
-                  {/* Customer Selection */}
-                  <div className="col-lg-4 col-sm-6">
+                <div className="col-lg-4 col-sm-6">
                     <label className="form-label">Customer</label>
-                    <select
-                      name="customer"
-                      className="form-control form-control-sm"
-                      value={formData.customer}
-                      onChange={handleChange}
-                      required
-                      disabled={!formData.scheme}
-                    >
-                      <option value="">Select Customer</option>
-                      {filteredCustomers.map((cs) => (
-                        <option key={cs.customer} value={cs.customer}>
-                          {cs.customer_name}
-                        </option>
-                      ))}
-                    </select>
+                    <ReactSelect
+                        styles={customStyles}
+                        value={
+                          filteredCustomers
+                            .map(customer => ({
+                              value: customer.customer,
+                              label: `(${customer.customer_details.profile_id}) - ${
+                                customer.customer_details.shop_name ? customer.customer_details.shop_name + " - " : ""
+                              }${customer.customer_details.first_name} ${customer.customer_details.last_name} (${customer.customer_details.contact_number})`
+                            }))
+                            .find(option => option.value === formData.customer) || null
+                        }
+                        options={filteredCustomers.map(customer => ({
+                          value: customer.customer,
+                          label: `(${customer.customer_details.profile_id}) - ${
+                            customer.customer_details.shop_name ? customer.customer_details.shop_name + " - " : ""
+                          }${customer.customer_details.first_name} ${customer.customer_details.last_name} (${customer.customer_details.contact_number})`
+                        }))}
+                        placeholder="Select Customer"
+                        onChange={handleCustomerSelect}
+                        isSearchable={true}
+                      />
                     {!formData.scheme && <small className="text-muted">Select a scheme first</small>}
                   </div>
 
-                  {/* Amount Input */}
                   <div className="col-lg-4 col-sm-6">
                     <label className="form-label">Amount Collected</label>
                     <input
@@ -217,8 +231,6 @@ const AddCollectionPlan = () => {
                       required
                     />
                   </div>
-
-                  {/* Collection Date */}
                   <div className="col-lg-4 col-sm-6">
                     <label className="form-label">Collection Date</label>
                     <input
@@ -230,8 +242,6 @@ const AddCollectionPlan = () => {
                       required
                     />
                   </div>
-
-                  {/* Notes */}
                   <div className="col-lg-4 col-sm-6">
                     <label className="form-label">Notes (Optional)</label>
                     <textarea
@@ -242,16 +252,12 @@ const AddCollectionPlan = () => {
                     />
                   </div>
                 </div>
-
-                {/* Submit Button */}
                 <div className="mt-3">
                   <button type="submit" className="btn btn-primary" disabled={loading}>
                     {loading ? "Adding..." : "Add Collection Entry"}
                   </button>
                 </div>
               </form>
-
-              {/* Message Display */}
               {message && (
                 <p className={`mt-2 text-${messageType === "success" ? "success" : "danger"}`}>
                   {message}
