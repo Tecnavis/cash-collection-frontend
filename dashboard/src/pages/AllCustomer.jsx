@@ -9,7 +9,7 @@ const AllCustomer = () => {
         <div className="row">
             <div className="col-12">
                 <div className="panel">
-                    <AllCustomerHeader/>
+                    {/* <AllCustomerHeader/> */}
                     <div className="panel-body">
                         <AllCustomerTable/>
                     </div>

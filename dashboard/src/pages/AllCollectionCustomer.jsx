@@ -11,7 +11,7 @@ const AllCollectionCustomer = () => {
         <div className="row">
             <div className="col-12">
                 <div className="panel">
-                    <AllCollectionCustomerHeader/>
+                    {/* <AllCollectionCustomerHeader/> */}
                     <div className="panel-body">
                         <AllCollectionCustomerTable/>                        
                     </div>

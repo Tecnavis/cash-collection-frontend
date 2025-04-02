@@ -10,7 +10,6 @@ const AllCustomerSchemes = () => {
     const [schemes, setSchemes] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedScheme, setSelectedScheme] = useState(null);
-    const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     
     useEffect(() => {
@@ -35,35 +34,9 @@ const AllCustomerSchemes = () => {
 
     const handleSearch = (e) => setSearchTerm(e.target.value);
 
-    const handleEditClick = (scheme) => {
-        setSelectedScheme(scheme);
-        setShowEditModal(true);
-    };
-
     const handleDeleteClick = (scheme) => {
         setSelectedScheme(scheme);
         setShowDeleteModal(true);
-    };
-
-    const handleEditChange = (e) => {
-        const { name, value } = e.target;
-        setSelectedScheme({ ...selectedScheme, [name]: value });
-    };
-
-    const handleEditSubmit = async () => {
-        try {
-            const token = Cookies.get("access_token");
-            await axios.put(`${BASE_URL}/cashcollection/cashcollections/${selectedScheme.id}/`, selectedScheme, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                }
-            });
-            fetchSchemes();
-            setShowEditModal(false);
-        } catch (error) {
-            console.error("Error updating scheme:", error);
-        }
     };
 
     const handleDeleteSubmit = async () => {
@@ -83,7 +56,8 @@ const AllCustomerSchemes = () => {
     };
 
     const filteredSchemes = schemes?.filter(scheme => 
-        typeof scheme?.scheme_name === "string" && scheme.scheme_name.toLowerCase().includes(searchTerm.toLowerCase())
+        (typeof scheme?.scheme_name === "string" && scheme.scheme_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (typeof scheme?.customer_name === "string" && scheme.customer_name.toLowerCase().includes(searchTerm.toLowerCase()))
     ) || [];
 
     return (
@@ -92,7 +66,7 @@ const AllCustomerSchemes = () => {
                 <div className="panel-header d-flex justify-content-between align-items-center">
                     <h5>All Schemes</h5>
                     <div className="btn-box d-flex gap-2">
-                        <Form.Control type="text" placeholder="Search..." value={searchTerm} onChange={handleSearch} />
+                        <Form.Control type="text" placeholder="Search by Scheme or Customer..." value={searchTerm} onChange={handleSearch} />
                     </div>
                 </div>
                 <div className="panel-body">

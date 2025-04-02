@@ -84,25 +84,18 @@ function App() {
             <Route path="/collectionplan" element={<AddCollectionPlan />} />
             <Route path="/collections" element={<AllCollections />} />
             <Route path="/transactions" element={<AllTransactions/>} />
-
             <Route path="/customertransaction" element={<AllCustomerTransaction />} />
-
             <Route path="/allProduct" element={<AllProduct />} />   
             <Route path="/category" element={<Category />} />
-
             <Route path="/addNewProduct" element={<AddNewProduct />} />
             <Route path="/purchaseditem" element={<Customer />} />
-
             <Route path="/allSales" element={<AllSales />} />
             <Route path="/addSales" element={<AddSales />} />
-            
-
             <Route path="/allpurchase" element={<AllPurchase />} />
             <Route path="/addPurchase" element={<AddPurchase />} />
             {/*agent*/}
             <Route path="/allCustomer" element={<AllCustomer />} />
             <Route path="/addPartner" element={<AddPartner />} />
-
              {/*customer  */}
             <Route path="/supplier" element={<Company />} />
             <Route path="/allCollectionCustomer" element={< AllCollectionCustomer />} />

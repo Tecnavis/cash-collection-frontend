@@ -5,6 +5,7 @@ import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import PaginationSection from "./PaginationSection";
 import { BASE_URL } from "../../api";
 import Cookies from "js-cookie";
+import AllCollectionCustomerHeader from "../header/AllCollectionCustomerHeader";
 
 
 const AllCollectionCustomerTable = () => {
@@ -18,7 +19,7 @@ const AllCollectionCustomerTable = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null); 
   const [originalEmployee, setOriginalEmployee] = useState(null);
-
+  const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -60,6 +61,21 @@ const AllCollectionCustomerTable = () => {
       setLoading(false);
     }
   };
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query.trim() === "") {
+      setDataList(customers);
+    } else {
+      const filteredData = customers.filter((customer) =>
+        `${customer.first_name} ${customer.last_name} ${customer.shop_name} ${customer.email}`
+          .toLowerCase()
+          .includes(query.toLowerCase())
+      );
+      setDataList(filteredData);
+    }
+  };
+
   const handleViewEmployee = async (id) => {
     if (!id) {
       console.error("Invalid employee ID:", id);
@@ -199,6 +215,7 @@ const AllCollectionCustomerTable = () => {
   if (error) return <p>{error}</p>;
   return (
     <>
+      <AllCollectionCustomerHeader onSearch={handleSearch} />
       <OverlayScrollbarsComponent>
         <Table striped bordered hover>
         <thead>

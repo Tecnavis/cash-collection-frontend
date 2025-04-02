@@ -5,6 +5,7 @@ import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import PaginationSection from "./PaginationSection";
 import { BASE_URL } from "../../api";
 import Cookies from "js-cookie";
+import AllCustomerHeader from "../header/AllCustomerHeader";
 
 
 const AllCustomerTable = () => {
@@ -17,6 +18,7 @@ const AllCustomerTable = () => {
   const [dataList, setDataList] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const dropdownRef = useRef(null);
 
@@ -42,12 +44,27 @@ const AllCustomerTable = () => {
       }));
   
       setCustomers(formattedCustomers);
+      setDataList(formattedCustomers);
       setTotalPages(response.data.total_pages);
     } catch (error) {
       console.error("Error fetching customers:", error);
       setError("Error fetching customers");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query.trim() === "") {
+      setDataList(customers);
+    } else {
+      const filteredData = customers.filter((customer) =>
+        `${customer.first_name} ${customer.last_name} ${customer.email}`
+          .toLowerCase()
+          .includes(query.toLowerCase())
+      );
+      setDataList(filteredData);
     }
   };
   
@@ -75,11 +92,7 @@ const AllCustomerTable = () => {
       if (!data || !data.id) {
         throw new Error("Invalid data received");
       }
-  
-      // Ensure `isEditing` is NOT set or is set to false
       setSelectedEmployee({ ...data, isEditing: false });
-  
-      // Ensure modal opens
       setShowModal(true);
     } catch (error) {
       console.error("Error fetching employee details:", error);
@@ -165,6 +178,7 @@ const AllCustomerTable = () => {
   if (error) return <p>{error}</p>;
   return (
     <>
+    <AllCustomerHeader onSearch={handleSearch} />
       <OverlayScrollbarsComponent>
         <Table striped bordered hover>
           <thead>
@@ -180,7 +194,7 @@ const AllCustomerTable = () => {
           </thead>
           <tbody>
           {customers.length > 0 ? (
-            customers.map((customer, index) => (
+            dataList.map((customer, index) => (
               <tr key={index}>
 
                 <td>{customer.id}</td> 
