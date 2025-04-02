@@ -9,7 +9,7 @@ import RecentOrder from '../components/dashboard/RecentOrder'
 const DashboardMainContent = () => {
   return (
     <div className="main-content">
-        <DashboardBreadcrumb title={'eCommerce Dashboard'}/>
+        <DashboardBreadcrumb title={'Dashboard'}/>
         <DashboardCards/>
         <div className="row">
             <SalesAnalytics/>
