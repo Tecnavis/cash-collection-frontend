@@ -14,12 +14,12 @@ const AllCustomerTable = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [dataPerPage] = useState(10);
+  const [dataPerPage] = useState(300);
   const [dataList, setDataList] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-
+  const [originalEmployee, setOriginalEmployee] = useState(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -37,6 +37,7 @@ const AllCustomerTable = () => {
         first_name: customer.user.first_name,
         last_name: customer.user.last_name,
         email: customer.user.email,
+        contact_number: customer.user.contact_number,
         secondary_contact: customer.secondary_contact || "N/A",
         address: customer.address || "N/A",
         other_info: customer.other_info || "N/A",
@@ -101,53 +102,60 @@ const AllCustomerTable = () => {
   
 
     const handleOpenEditModal = (customer) => {
+      setOriginalEmployee({ ...customer });  // Store original data
       setSelectedEmployee({ ...customer, isEditing: true });
       setShowModal(true);
   };
 
-  const handleUpdateEmployee = async () => {
-    if (!selectedEmployee || !selectedEmployee.id) {
-        console.error("No employee selected for update.");
-        return;
-    }
 
-    try {
-        const response = await fetch(`${BASE_URL}/partner/partners/${selectedEmployee.id}/`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${Cookies.get("access_token")}`
-            },
-            body: JSON.stringify({
-                first_name: selectedEmployee.first_name || "",
-                last_name: selectedEmployee.last_name || "",
-                email: selectedEmployee.email || "",
-                secondary_contact: selectedEmployee.secondary_contact || "",
-                address: selectedEmployee.address || "",
-                other_info: selectedEmployee.other_info || ""
-            }),
-            
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error("Error updating employee:", errorData);
-            alert(`Failed to update employee: ${errorData.message || "Unknown error"}`);
+    const handleUpdateEmployee = async () => {
+        if (!selectedEmployee || !selectedEmployee.id) {
             return;
         }
-
-        const updatedData = await response.json();
-        console.log("Updated Employee:", updatedData);
-        fetchCustomers(); 
-
-        // Close modal
-        setShowModal(false);
-
-    } catch (error) {
-        console.error("Network error:", error);
-        alert("A network error occurred. Please try again later.");
-    }
-};
+        if (!originalEmployee) {
+            return;
+        }
+        const userPayload = {
+            first_name: selectedEmployee.first_name || "",
+            last_name: selectedEmployee.last_name || "",
+            contact_number: selectedEmployee.contact_number || ""
+        };
+  
+        if (selectedEmployee.email !== originalEmployee.email) {
+            userPayload.email = selectedEmployee.email || "";
+        }
+        try {
+            const response = await fetch(`${BASE_URL}/partner/partners/${selectedEmployee.id}/`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${Cookies.get("access_token")}`
+                },
+                body: JSON.stringify({
+                    profile_id: selectedEmployee.profile_id || selectedEmployee.id,
+                    // shop_name: selectedEmployee.shop_name || "",
+                    secondary_contact: selectedEmployee.secondary_contact || "",
+                    address: selectedEmployee.address || "",
+                    other_info: selectedEmployee.other_info || "",
+                    user: userPayload  
+                }),
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                const errorMessage = errorData.message || errorData.detail || "Unknown error";
+                console.error("Error updating employee:", errorMessage);
+                alert(`Failed to update employee: ${errorMessage}`);
+                return;
+            }
+            const updatedData = await response.json();
+            fetchCustomers(currentPage);
+            setShowModal(false);
+  
+        } catch (error) {
+            console.error("Network error:", error);
+            alert("A network error occurred. Please try again later.");
+        }
+    };
     const handleDeleteEmployee = async (id) => {
       if (window.confirm("Are you sure you want to delete this employee?")) {
         try {
@@ -194,7 +202,7 @@ const AllCustomerTable = () => {
           </thead>
           <tbody>
           {customers.length > 0 ? (
-            dataList.map((customer, index) => (
+            currentData.map((customer, index) => (
               <tr key={index}>
 
                 <td>{customer.id}</td> 
@@ -250,7 +258,7 @@ const AllCustomerTable = () => {
                             type="text"
                             className="form-control"
                             value={selectedEmployee.id || ''}
-                            disabled // Making Profile ID non-editable
+                            disabled 
                           />
                         </div>
 
@@ -368,7 +376,6 @@ const AllCustomerTable = () => {
         paginate={paginate}
         pageNumbers={Array.from({ length: totalPages }, (_, i) => i + 1)}
       />
-      
     </>
   );
 };
