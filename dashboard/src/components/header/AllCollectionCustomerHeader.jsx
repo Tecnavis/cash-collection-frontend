@@ -4,9 +4,10 @@ import { Link } from 'react-router-dom';
 
 const AllCollectionCustomerHeader = ({ onSearch }) => {
   return (
+    <>
     <div className="panel-header">
       <h5>All Customers</h5>
-      <div className="btn-box d-flex flex-wrap gap-2">
+      <div className="btn-box d-flex flex-wrap gap-3">
         <div id="tableSearch">
           <Form.Control
             type="text"
@@ -19,6 +20,7 @@ const AllCollectionCustomerHeader = ({ onSearch }) => {
         </Link>
       </div>
     </div>
+    </>
   );
 };
 
