@@ -11,10 +11,17 @@ const AllTransactionTable = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     fetchTransactions();
   }, []);
+
+  const handleFilterChange = (e) => {
+    const selectedFilter = e.target.value;
+    setFilter(selectedFilter);
+    onFilterChange(selectedFilter);
+  };
 
   const fetchTransactions = async () => {
     try {
@@ -74,7 +81,7 @@ const AllTransactionTable = () => {
               <td>{transaction.scheme_name || "N/A"}</td>
               <td>Rs {transaction.amount}</td>
               <td>{transaction.payment_method}</td>
-              <td>{transaction.created_by || "Unknown"}</td> {/* Fix this */}
+              <td>{transaction.created_by || "Unknown"}</td> 
             </tr>
           ))}
         </tbody>
