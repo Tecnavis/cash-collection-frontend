@@ -88,7 +88,8 @@ const AllCustomerSchemes = () => {
                                             <td>{scheme?.scheme_name || '-'}</td>
                                             <td>{scheme?.start_date || '-'}</td>
                                             <td>{scheme?.end_date || '-'}</td>
-                                            <td>{scheme?.customer_name || '-'}</td>
+                                            <td>{`${scheme?.customer_details?.first_name} ${scheme?.customer_details?.last_name}` || '-'}</td>
+
                                             <td>
                                                 <Button variant="danger" size="sm" onClick={() => handleDeleteClick(scheme)}>Delete</Button>
                                             </td>

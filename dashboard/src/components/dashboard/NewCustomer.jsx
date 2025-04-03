@@ -1,126 +1,100 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import { BASE_URL } from '../../api';
+
 
 const NewCustomer = () => {
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchTransactions = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/cashcollection/cashcollections/`, {
+        headers: {
+          "Authorization": `Bearer ${Cookies.get("access_token")}`,
+        },
+      });
+
+      const data = response.data;
+
+      // Create a mapping of customer IDs to their schemes
+      const customerSchemeMap = {};
+      data.forEach(entry => {
+        const customerId = entry.customer;
+        if (!customerSchemeMap[customerId]) {
+          customerSchemeMap[customerId] = {
+            details: entry.customer_details,
+            schemes: new Set(),
+            updatedAt: entry.updated_at
+          };
+        }
+        customerSchemeMap[customerId].schemes.add(entry.scheme);
+        customerSchemeMap[customerId].updatedAt = entry.updated_at;
+      });
+
+      // Filter customers with multiple schemes & sort by latest update
+      const filteredCustomers = Object.values(customerSchemeMap)
+        .filter(customer => customer.schemes.size > 1)
+        .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+        .slice(0, 5);
+
+      setCustomers(filteredCustomers);
+    } catch (error) {
+      setError("Error fetching transactions");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
   return (
     <div className="col-xxl-4 col-md-6">
-        <div className="panel">
-            <div className="panel-header">
-                <h5>New Customers</h5>
-            </div>
-            <div className="panel-body">
-                <table className="table table-borderless new-customer-table">
-                    <tbody>
-                        <tr>
-                            <td>
-                                <div className="new-customer">
-                                    <div className="part-img">
-                                        <img src="assets/images/avatar.png" alt="Image"/>
-                                    </div>
-                                    <div className="part-txt">
-                                        <p className="customer-name">Iftikar Ammed</p>
-                                        <span>@iftikarahmed</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>2 Orders</td>
-                            <td>$179</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div className="new-customer">
-                                    <div className="part-img">
-                                        <img src="assets/images/avatar-2.png" alt="Image"/>
-                                    </div>
-                                    <div className="part-txt">
-                                        <p className="customer-name">Sadab Khan</p>
-                                        <span>@sadabkhan</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>2 Orders</td>
-                            <td>$179</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div className="new-customer">
-                                    <div className="part-img">
-                                        <img src="assets/images/avatar-3.png" alt="Image"/>
-                                    </div>
-                                    <div className="part-txt">
-                                        <p className="customer-name">Hoyder Ali</p>
-                                        <span>@hoyderali</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>2 Orders</td>
-                            <td>$179</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div className="new-customer">
-                                    <div className="part-img">
-                                        <img src="assets/images/avatar-4.png" alt="Image"/>
-                                    </div>
-                                    <div className="part-txt">
-                                        <p className="customer-name">Hardik Ali</p>
-                                        <span>@hardikali</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>2 Orders</td>
-                            <td>$179</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div className="new-customer">
-                                    <div className="part-img">
-                                        <img src="assets/images/avatar-5.png" alt="Image"/>
-                                    </div>
-                                    <div className="part-txt">
-                                        <p className="customer-name">Alaysa Haly</p>
-                                        <span>@alaysahaly</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>2 Orders</td>
-                            <td>$179</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div className="new-customer">
-                                    <div className="part-img">
-                                        <img src="assets/images/avatar-6.png" alt="Image"/>
-                                    </div>
-                                    <div className="part-txt">
-                                        <p className="customer-name">Natalush Khan</p>
-                                        <span>@natalushkhan</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>2 Orders</td>
-                            <td>$179</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div className="new-customer">
-                                    <div className="part-img">
-                                        <img src="assets/images/avatar-7.png" alt="Image"/>
-                                    </div>
-                                    <div className="part-txt">
-                                        <p className="customer-name">Rafikul Sarker</p>
-                                        <span>@rafiksarker</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>5 Orders</td>
-                            <td>$320</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+      <div className="panel">
+        <div className="panel-header">
+          <h5>New Customers (Multiple Schemes)</h5>
         </div>
+        <div className="panel-body">
+          {loading ? (
+            <p>Loading...</p>
+          ) : error ? (
+            <p style={{ color: "red" }}>{error}</p>
+          ) : (
+            <table className="table table-borderless new-customer-table">
+              <tbody>
+                {customers.length > 0 ? (
+                  customers.map((customer, index) => (
+                    <tr key={index}>
+                      <td>
+                        <div className="new-customer">
+                          <div className="part-txt">
+                            <p className="customer-name">
+                              {customer.details.first_name} {customer.details.last_name}
+                            </p>
+                            <span>{customer.details.email}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>{customer.schemes.size} Schemes</td>
+                      <td>📅 {new Date(customer.updatedAt).toLocaleDateString()}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="3">No customers found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default NewCustomer
+export default NewCustomer;

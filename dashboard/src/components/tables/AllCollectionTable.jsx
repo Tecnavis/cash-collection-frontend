@@ -43,7 +43,7 @@ const AllCollectionTable = () => {
 <Table striped bordered hover>
         <thead>
           <tr>
-          <th>Collected At</th>
+            <th>Joined Date </th>
             <th>Customer Name</th>
             <th>Scheme Name</th>
             <th>Scheme Total Amount</th>
@@ -56,7 +56,10 @@ const AllCollectionTable = () => {
             <tr key={transaction.id}>
               <td>{new Date(transaction.created_at).toLocaleString()}</td>
         
-              <td>{transaction.customer_name}</td>
+              <td>
+                {transaction.customer_details.shop_name} - {transaction.customer_details.first_name} {transaction.customer_details.last_name}
+              </td>
+
               <td>{transaction.scheme_name}</td>
               
               <td>Rs {transaction.scheme_total_amount}</td>

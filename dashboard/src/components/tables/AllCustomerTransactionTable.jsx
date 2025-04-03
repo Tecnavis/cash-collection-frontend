@@ -26,28 +26,43 @@ const AllCustomerTransactionTable = () => {
         }
       );
 
-      // Group data by customer
+      // Grouping customers
       const groupedCustomers = response.data.reduce((acc, item) => {
-        const existingCustomer = acc.find((c) => c.customer_name === item.customer_name);
-        if (existingCustomer) {
-          existingCustomer.schemes.push({
+        let customer = acc.find((c) => c.customer_details.id === item.customer_details.id);
+        
+        if (!customer) {
+          customer = {
+            customer_details: item.customer_details,
+            schemes: [],
+          };
+          acc.push(customer);
+        }
+
+        // Grouping schemes
+        let scheme = customer.schemes.find((s) => s.scheme_name === item.scheme_name);
+
+        if (!scheme) {
+          scheme = {
             scheme_name: item.scheme_name,
             scheme_total_amount: item.scheme_total_amount,
-            payment_history: item.payment_history,
-          });
-        } else {
-          acc.push({
-            customer_name: item.customer_name,
-            customer_contact: item.customer_contact,
-            schemes: [
-              {
-                scheme_name: item.scheme_name,
-                scheme_total_amount: item.scheme_total_amount,
-                payment_history: item.payment_history,
-              },
-            ],
-          });
+            payment_history: [],
+          };
+          customer.schemes.push(scheme);
         }
+
+        // Avoid duplicate payments
+        const existingPayments = new Set(
+          scheme.payment_history.map((p) => JSON.stringify(p))
+        );
+
+        item.payment_history.forEach((payment) => {
+          const paymentStr = JSON.stringify(payment);
+          if (!existingPayments.has(paymentStr)) {
+            scheme.payment_history.push(payment);
+            existingPayments.add(paymentStr);
+          }
+        });
+
         return acc;
       }, []);
 
@@ -69,7 +84,6 @@ const AllCustomerTransactionTable = () => {
 
   return (
     <div className="panel">
-      <h4>Customer Transactions</h4>
       <Table striped bordered hover>
         <thead>
           <tr>
@@ -81,8 +95,8 @@ const AllCustomerTransactionTable = () => {
         <tbody>
           {customers.map((customer, index) => (
             <tr key={index}>
-              <td>{customer.customer_name}</td>
-              <td>{customer.customer_contact}</td>
+              <td>{customer.customer_details.first_name} {customer.customer_details.last_name} -{customer.customer_details.shop_name}</td>
+              <td>{customer.customer_details.contact_number}</td>
               <td>
                 {customer.schemes.map((scheme, idx) => (
                   <div key={idx}>
@@ -104,43 +118,55 @@ const AllCustomerTransactionTable = () => {
       {/* Payment History Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Payment History</Modal.Title>
+          <Modal.Title>Payment Receipt</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {selectedScheme ? (
-            <div>
-              <h5>{selectedScheme.scheme_name}</h5>
-              <p><strong>Total Amount:</strong> ₹{selectedScheme.scheme_total_amount}</p>
-              {selectedScheme.payment_history.length > 0 ? (
-                <Table striped bordered>
-                  <thead>
-                    <tr>
-                      <th>Amount</th>
-                      <th>Method</th>
-                      <th>Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedScheme.payment_history.map((payment, index) => (
-                      <tr key={index}>
-                        <td>₹{payment.amount}</td>
-                        <td>{payment.payment_method}</td>
-                        <td>
-                          {new Date(payment.date).toLocaleDateString("en-IN", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </td>
+          <div
+            style={{
+              background: "#E5FFE5",
+              borderRadius: "8px",
+              padding: "20px",
+              position: "relative",
+              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            {selectedScheme ? (
+              <div>
+                <h5>{selectedScheme.scheme_name}</h5>
+                <p>
+                  <strong>Total Amount:</strong> ₹{selectedScheme.scheme_total_amount}
+                </p>
+                {selectedScheme.payment_history.length > 0 ? (
+                  <Table striped bordered>
+                    <thead>
+                      <tr>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Date</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              ) : (
-                <p>No payment history available.</p>
-              )}
-            </div>
-          ) : null}
+                    </thead>
+                    <tbody>
+                      {selectedScheme.payment_history.map((payment, index) => (
+                        <tr key={index}>
+                          <td>₹{payment.amount}</td>
+                          <td>{payment.payment_method}</td>
+                          <td>
+                            {new Date(payment.date).toLocaleDateString("en-IN", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : (
+                  <p>No payment history available.</p>
+                )}
+              </div>
+            ) : null}
+          </div>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>

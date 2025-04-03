@@ -13,9 +13,9 @@ const DashboardMainContent = () => {
         <DashboardCards/>
         <div className="row">
             <SalesAnalytics/>
-            <SocialVisitors/>
+            {/* <SocialVisitors/> */}
             <NewCustomer/>
-            <RecentOrder/>
+            {/* <RecentOrder/> */}
         </div>
         <Footer/>
     </div>
