@@ -34,7 +34,7 @@ const AllTransactionTable = () => {
         }
       );
       setTransactions(response.data);
-      setFilteredTransactions(response.data); 
+      setFilteredTransactions(response.data);
     } catch (error) {
       setError("Error fetching transactions");
     } finally {
@@ -54,6 +54,13 @@ const AllTransactionTable = () => {
       );
       setFilteredTransactions(filteredData);
     }
+  };
+
+  const calculateTotalAmount = () => {
+    return filteredTransactions.reduce(
+      (total, item) => total + parseFloat(item.amount || 0),
+      0
+    );
   };
 
   if (loading) return <p>Loading transactions...</p>;
@@ -81,9 +88,14 @@ const AllTransactionTable = () => {
               <td>{transaction.scheme_name || "N/A"}</td>
               <td>Rs {transaction.amount}</td>
               <td>{transaction.payment_method}</td>
-              <td>{transaction.created_by || "Unknown"}</td> 
+              <td>{transaction.created_by || "Unknown"}</td>
             </tr>
           ))}
+          <tr style={{ fontWeight: "bold", backgroundColor: "#f8f9fa" }}>
+            <td colSpan="3">Total</td>
+            <td>Rs {calculateTotalAmount()}</td>
+            <td colSpan="2"></td>
+          </tr>
         </tbody>
       </Table>
     </div>
