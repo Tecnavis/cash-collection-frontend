@@ -90,8 +90,8 @@ const DashboardCards = () => {
 
                     <div className="left">
                         <h3>₹<CountUp end={weeklyCollection} decimals={2} /></h3>
-                        <p>Weekly Collection</p>
-                        <Link to="#">View details</Link>
+                        <p>Total Collection</p>
+                        {/* <Link to="#">See details</Link> */}
                     </div>
                     <div className="right">
                         <div className="part-icon rounded">
@@ -108,7 +108,7 @@ const DashboardCards = () => {
                     <div className="left">
                         <h3><CountUp end={totalTransactions} /></h3>
                         <p>Total Transactions</p>
-                        <Link to="#">See details</Link>
+                        {/* <Link to="#">See details</Link> */}
                     </div>
                     <div className="right">
                         <div className="part-icon rounded">
@@ -125,7 +125,7 @@ const DashboardCards = () => {
                     <div className="left">
                         <h3><CountUp end={totalCustomers} /></h3>
                         <p>Total Customers</p>
-                        <Link to="#">See details</Link>
+                        {/* <Link to="#">See details</Link> */}
                     </div>
                     <div className="right">
                         <div className="part-icon rounded">
@@ -142,7 +142,7 @@ const DashboardCards = () => {
                     <div className="left">
                         <h3><CountUp end={totalSchemes} /></h3>
                         <p>Total Schemes</p>
-                        <Link to="#">View schemes</Link>
+                        {/* <Link to="#">View schemes</Link> */}
                     </div>
                     <div className="right">
                         <div className="part-icon rounded">

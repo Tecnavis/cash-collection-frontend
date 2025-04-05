@@ -7,6 +7,7 @@ import axios from "axios";
 import { BASE_URL } from "../../api";
 import * as XLSX from "xlsx"; 
 import Cookies from "js-cookie";
+import { Button } from "react-bootstrap";
 
 const AllTransactionHeader = ({ onSearch }) => {
   const { headerBtnOpen, handleHeaderBtn, handleHeaderReset, headerRef } = useContext(DigiContext);
@@ -107,8 +108,14 @@ const AllTransactionHeader = ({ onSearch }) => {
           <option value="monthly">Monthly</option>
           <option value="all">All</option>
         </Form.Select>
-        <button className="btn btn-primary" onClick={downloadTransactionsPDF}>Export as PDF</button>
-        <button className="btn btn-success" onClick={downloadTransactionsExcel}>Export as Excel</button>
+        <div className="btn-box">
+        <Button className="btn btn-sm btn-success ms-2" onClick={downloadTransactionsPDF}>
+                          <i className="fa fa-download"></i> PDF
+                        </Button>
+                        <Button className="btn btn-sm btn-info ms-2 text-white" onClick={downloadTransactionsExcel}>
+                          <i className="fa fa-file-excel"></i> Excel
+                      </Button>
+        </div>
       </div>
     </div>
   );

@@ -1,54 +1,48 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import { Form, Button } from "react-bootstrap";
 import { DigiContext } from "../../context/DigiContext";
-import { Link } from "react-router-dom";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import axios from "axios";
 import { BASE_URL } from "../../api";
-import * as XLSX from "xlsx"; 
+import * as XLSX from "xlsx";
 import Cookies from "js-cookie";
 
-const AllCollectionHeader = () => {
+const AllCollectionHeader = ({ onSearch }) => {
   const { headerBtnOpen, handleHeaderBtn, handleHeaderReset, headerRef } =
     useContext(DigiContext);
+    
 
-    const downloadSalesPDF = async () => {
+  const downloadCollectionPDF = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/financials/transactions_list/`);
-      const transactions = response.data;
+      const response = await axios.get(`${BASE_URL}/cashcollection/cashcollections/`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("access_token")}`,
+        },
+      });
+      const data = response.data;
 
       const doc = new jsPDF();
       doc.setFontSize(10);
-      doc.text("Sales Report", doc.internal.pageSize.getWidth() / 2, 10, { align: "center" });
-      const columns = [
-        "Transaction ID",
-        "Username",
-        "Service",
-        "Price",
-        "Total Paid",
-        "Remaining Amount",
-        "Sale Date",
-        "Payment Modes",
-      ];
-      const rows = transactions
-        .filter((transaction) => transaction.transaction_type === "sale")
-        .map((transaction) => {
-          const paymentModes = transaction.payments
-            ?.map((payment) => payment.payment_mode)
-            .join(", ") || "N/A";
+      doc.text("Cash Collection Report", doc.internal.pageSize.getWidth() / 2, 10, { align: "center" });
 
-          return [
-            transaction.transaction_id,
-            transaction.username,
-            transaction.service_name,
-            `Rs ${transaction.service_price}`,
-            `Rs ${transaction.total_paid}`,
-            `Rs ${transaction.remaining_amount}`,
-            transaction.sale_date,
-            paymentModes,
-          ];
-        });
+      const columns = [
+        "Joined Date",
+        "Customer Name",
+        "Scheme Name",
+        "Total Amount",
+        "Start Date",
+        "End Date",
+      ];
+
+      const rows = data.map((item) => [
+        new Date(item.created_at).toLocaleString(),
+        `${item.customer_details.shop_name} - ${item.customer_details.first_name} ${item.customer_details.last_name}`,
+        item.scheme_name,
+        `Rs ${item.scheme_total_amount}`,
+        item.start_date,
+        item.end_date,
+      ]);
 
       doc.autoTable({
         head: [columns],
@@ -56,110 +50,77 @@ const AllCollectionHeader = () => {
         startY: 20,
       });
 
-      doc.save("Sales_Report.pdf");
+      doc.save("Cash_Collection_Report.pdf");
     } catch (error) {
-      console.error("Error generating Sales PDF:", error);
+      console.error("Error generating PDF:", error);
     }
-  };  
+  };
 
-  const downloadSalesExcel = async () => {
+  const downloadCollectionExcel = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/financials/transactions_list/`);
-      const transactions = response.data;
+      const response = await axios.get(`${BASE_URL}/cashcollection/cashcollections/`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("access_token")}`,
+        },
+      });
+      const data = response.data;
 
-      if (transactions.length === 0) {
+      if (data.length === 0) {
         alert("No data available to export.");
         return;
       }
 
-      const exportData = transactions
-        .filter((transaction) => transaction.transaction_type === "sale")
-        .map((transaction) => ({
-          "Transaction ID": transaction.transaction_id,
-          "Username": transaction.username,
-          "Service": transaction.service_name,
-          "Price": `Rs ${transaction.service_price}`,
-          "Total Paid": `Rs ${transaction.total_paid}`,
-          "Remaining Amount": `Rs ${transaction.remaining_amount}`,
-          "Sale Date": transaction.sale_date,
-          "Payment Modes": transaction.payments?.map((payment) => payment.payment_mode).join(", ") || "N/A",
-        }));
+      const exportData = data.map((item) => ({
+        "Joined Date": new Date(item.created_at).toLocaleString(),
+        "Customer Name": `${item.customer_details.shop_name} - ${item.customer_details.first_name} ${item.customer_details.last_name}`,
+        "Scheme Name": item.scheme_name,
+        "Total Amount": `Rs ${item.scheme_total_amount}`,
+        "Start Date": item.start_date,
+        "End Date": item.end_date,
+      }));
 
       const ws = XLSX.utils.json_to_sheet(exportData);
-
-      const colWidths = [
-        { wpx: 100 }, 
-        { wpx: 150 },
-        { wpx: 200 }, 
-        { wpx: 100 }, 
-        { wpx: 100 }, 
-        { wpx: 150 },
-        { wpx: 100 }, 
-        { wpx: 150 }, 
+      ws["!cols"] = [
+        { wpx: 140 },
+        { wpx: 200 },
+        { wpx: 160 },
+        { wpx: 130 },
+        { wpx: 120 },
+        { wpx: 120 },
       ];
 
-      ws['!cols'] = colWidths; 
-
-     
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Sales Data");
+      XLSX.utils.book_append_sheet(wb, ws, "Cash Collection");
 
-      XLSX.writeFile(wb, "Sales_Report.xlsx");
+      XLSX.writeFile(wb, "Cash_Collection_Report.xlsx");
     } catch (error) {
-      console.error("Error exporting Sales Excel:", error);
+      console.error("Error exporting Excel:", error);
     }
   };
-  const uploadSalesExcel = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-  
-    const formData = new FormData();
-    formData.append("excel_file", file);  
-  
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/financials/import-excel/`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-             "Authorization": `Bearer ${Cookies.get("access_token")}` 
-          },
-        }
-      );
-      alert("Sales data imported successfully!");
-    } catch (error) {
-      console.error("Error uploading sales data:", error.response?.data || error);
-      alert("Error uploading sales data");
-    }
-  };
-  
+
   return (
     <div className="panel-header">
-      <h5>schemewise customer </h5>
+      <h5>Schemewise Customer</h5>
       <div className="btn-box d-flex flex-wrap gap-2">
         <div id="tableSearch">
-          <Form.Control type="text" placeholder="Search..." />
+        <Form.Control
+                  type="text"
+                  placeholder="Search..."
+                  onChange={(e) => onSearch(e.target.value)}
+                  style={{ width: "250px" }}
+                />
         </div>
-        {/* <div className="btn-box">
-          <Link to="/collectionplan" className="btn btn-sm btn-primary">
-            <i className="fa-light fa-plus"></i>Add New
-          </Link>
-          <Button className="btn btn-sm btn-success ms-2" onClick={downloadSalesPDF}>
+        <div className="btn-box">
+          <Button className="btn btn-sm btn-success ms-2" onClick={downloadCollectionPDF}>
             <i className="fa fa-download"></i> PDF
           </Button>
-          <Button className="btn btn-sm btn-info ms-2 text-white" onClick={downloadSalesExcel}>
-            <i className="fa-light fa-file-excel"></i>Excel
+          <Button className="btn btn-sm btn-info ms-2 text-white" onClick={downloadCollectionExcel}>
+            <i className="fa fa-file-excel"></i> Excel
           </Button>
-
-          <input type="file" accept=".xlsx, .xls" onChange={uploadSalesExcel} className="d-none" id="uploadExcel" />
-          <label htmlFor="uploadExcel" className="btn btn-sm btn-primary ms-2 text-white">
-            <i className="fa-light fa-upload"></i> Import
-          </label>
-
-        </div> */}
+        </div>
       </div>
     </div>
   );
 };
+
 export default AllCollectionHeader;

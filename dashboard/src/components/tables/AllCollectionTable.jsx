@@ -4,20 +4,18 @@ import { Table, Button, Modal, Form } from "react-bootstrap";
 import { Eye, Pencil, Trash } from "react-bootstrap-icons";
 import { BASE_URL } from "../../api";
 import Cookies from "js-cookie";  
+import AllCollectionHeader from "../header/AllCollectionHeader";
 
 const AllCollectionTable = () => {
   const [transactions, setTransactions] = useState([]);
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [paymentAmount, setPaymentAmount] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("");
- 
 
   useEffect(() => {
     fetchTransactions();
   }, []);
+
   const fetchTransactions = async () => {
     try {
       const response = await axios.get(`${BASE_URL}/cashcollection/cashcollections/`, {
@@ -26,6 +24,7 @@ const AllCollectionTable = () => {
         },
       });
       setTransactions(response.data);
+      setFilteredTransactions(response.data); // Initialize filtered list
     } catch (error) {
       setError("Error fetching transactions");
     } finally {
@@ -33,17 +32,35 @@ const AllCollectionTable = () => {
     }
   };
 
+  const handleSearch = (query) => {
+    if (query.trim() === "") {
+      setFilteredTransactions(transactions);
+    } else {
+      const lowerQuery = query.toLowerCase();
+      const filtered = transactions.filter((transaction) => {
+        const customerName = `${transaction.customer_details.first_name} ${transaction.customer_details.last_name}`.toLowerCase();
+        const schemeName = transaction.scheme_name?.toLowerCase() || "";
+        const createdBy = transaction.created_by?.toLowerCase() || "";
+        return (
+          customerName.includes(lowerQuery) ||
+          schemeName.includes(lowerQuery) ||
+          createdBy.includes(lowerQuery)
+        );
+      });
+      setFilteredTransactions(filtered);
+    }
+  };
 
   if (loading) return <p>Loading transactions...</p>;
   if (error) return <p>{error}</p>;
 
   return (
     <div className="panel">
-
-<Table striped bordered hover>
+      <AllCollectionHeader onSearch={handleSearch} />
+      <Table striped bordered hover>
         <thead>
           <tr>
-            <th>Joined Date </th>
+            <th>Joined Date</th>
             <th>Customer Name</th>
             <th>Scheme Name</th>
             <th>Scheme Total Amount</th>
@@ -52,25 +69,25 @@ const AllCollectionTable = () => {
           </tr>
         </thead>
         <tbody>
-          {transactions.map((transaction) => (
+          {filteredTransactions.map((transaction) => (
             <tr key={transaction.id}>
               <td>{new Date(transaction.created_at).toLocaleString()}</td>
-        
               <td>
-                {transaction.customer_details.shop_name} - {transaction.customer_details.first_name} {transaction.customer_details.last_name}
+                {transaction.customer_details.shop_name} -{" "}
+                {transaction.customer_details.first_name}{" "}
+                {transaction.customer_details.last_name}
               </td>
-
               <td>{transaction.scheme_name}</td>
-              
               <td>Rs {transaction.scheme_total_amount}</td>
               <td>{transaction.start_date}</td>
               <td>{transaction.end_date}</td>
             </tr>
           ))}
         </tbody>
-      </Table>   
+      </Table>
     </div>
   );
 };
+
 export default AllCollectionTable;
 

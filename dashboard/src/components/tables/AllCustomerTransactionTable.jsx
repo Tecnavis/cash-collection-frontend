@@ -5,9 +5,11 @@ import { BASE_URL } from "../../api";
 import Cookies from "js-cookie";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import AllCustomerTransactionHeader from "../header/AllCustomerTransactionHeader";
 
 const AllCustomerTransactionTable = () => {
   const [customers, setCustomers] = useState([]);
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedScheme, setSelectedScheme] = useState(null);
@@ -68,6 +70,7 @@ const AllCustomerTransactionTable = () => {
       }, []);
 
       setCustomers(groupedCustomers);
+      setFilteredCustomers(groupedCustomers); // initialize filtered data
     } catch (error) {
       setError("Error fetching transactions");
     } finally {
@@ -97,11 +100,40 @@ const AllCustomerTransactionTable = () => {
     pdf.save(`${selectedScheme?.scheme_name}_receipt.pdf`);
   };
 
+  const handleSearch = (query) => {
+    if (query.trim() === "") {
+      setFilteredCustomers(customers);
+      return;
+    }
+
+    const lowerQuery = query.toLowerCase();
+    const filtered = customers.filter((customer) => {
+      const customerName = `${customer.customer_details.first_name} ${customer.customer_details.last_name}`.toLowerCase();
+      const shopName = customer.customer_details.shop_name?.toLowerCase() || "";
+      const contact = customer.customer_details.contact_number?.toLowerCase() || "";
+
+      const schemeMatch = customer.schemes.some((scheme) =>
+        scheme.scheme_name?.toLowerCase().includes(lowerQuery)
+      );
+
+      return (
+        customerName.includes(lowerQuery) ||
+        shopName.includes(lowerQuery) ||
+        contact.includes(lowerQuery) ||
+        schemeMatch
+      );
+    });
+
+    setFilteredCustomers(filtered);
+  };
+
   if (loading) return <p>Loading transactions...</p>;
   if (error) return <p>{error}</p>;
 
   return (
     <div className="panel">
+      <AllCustomerTransactionHeader onSearch={handleSearch} />
+
       <Table striped bordered hover>
         <thead>
           <tr>
@@ -112,7 +144,7 @@ const AllCustomerTransactionTable = () => {
           </tr>
         </thead>
         <tbody>
-          {customers.map((customer, index) => (
+          {filteredCustomers.map((customer, index) => (
             <tr key={index}>
               <td>
                 {customer.customer_details.first_name}{" "}
@@ -149,7 +181,7 @@ const AllCustomerTransactionTable = () => {
         </tbody>
       </Table>
 
-      {/* Modal View (on screen) */}
+      {/* Modal View */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Payment Receipt</Modal.Title>
@@ -243,14 +275,18 @@ const AllCustomerTransactionTable = () => {
       >
         {selectedScheme && selectedCustomer && (
           <>
-            <h2 style={{ textAlign: "center", marginBottom: "20px" }}>Payment Receipt</h2>
+            <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
+              Payment Receipt
+            </h2>
             <p>
-              <strong>Customer:</strong> {selectedCustomer.customer_details.first_name}{" "}
+              <strong>Customer:</strong>{" "}
+              {selectedCustomer.customer_details.first_name}{" "}
               {selectedCustomer.customer_details.last_name} -{" "}
               {selectedCustomer.customer_details.shop_name}
             </p>
             <p>
-              <strong>Contact:</strong> {selectedCustomer.customer_details.contact_number}
+              <strong>Contact:</strong>{" "}
+              {selectedCustomer.customer_details.contact_number}
             </p>
             <p>
               <strong>Scheme:</strong> {selectedScheme.scheme_name}

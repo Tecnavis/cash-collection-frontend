@@ -3,7 +3,7 @@ import axios from "axios";
 import { Table } from "react-bootstrap";
 import { BASE_URL } from "../../api";
 import Cookies from "js-cookie";
-import AllTransactionHeader from "../header/AllTransactionHeader";
+import AllTransactionsHeader from "../header/AllTransactionHeader";
 
 const AllTransactionTable = () => {
   const [transactions, setTransactions] = useState([]);
@@ -68,7 +68,8 @@ const AllTransactionTable = () => {
 
   return (
     <div className="panel">
-      <AllTransactionHeader onSearch={handleSearch} />
+      <AllTransactionsHeader onSearch={handleSearch} />
+
       <Table striped bordered hover>
         <thead>
           <tr>

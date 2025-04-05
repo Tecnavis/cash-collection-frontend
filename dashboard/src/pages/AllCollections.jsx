@@ -10,7 +10,7 @@ const AllCollectionMainContent = () => {
         <div className="row g-4">
             <div className="col-12">
                 <div className="panel">
-                    <AllCollectionHeader/>
+                    {/* <AllCollectionHeader/> */}
                     <div className="panel-body">
                         <HeaderBtn/>
                         <AllCollectionTable/>
