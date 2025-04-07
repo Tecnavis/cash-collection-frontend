@@ -10,15 +10,23 @@ const AppsPart = () => {
       <ul className="sidebar-link-group d-block">
         {/* Financials */}
         <li className="sidebar-dropdown-item">
-          <NavLink to="/collections" className="sidebar-link">
-            <i className="fas fa-chart-line"></i> Collection Reports
+          <NavLink to="/collectionprogress" className="sidebar-link"> 
+            <i className="fas fa-clipboard-list"></i> Collection Progress Report
           </NavLink>
         </li>
+
+        <li className="sidebar-dropdown-item">
+          <NavLink to="/collections" className="sidebar-link">
+            <i className="fas fa-chart-line"></i> Scheme Customer Reports
+          </NavLink>
+        </li>
+
         <li className="sidebar-dropdown-item">
           <NavLink to="/customertransaction" className="sidebar-link">
             <i className="fas fa-users"></i> Customerwise Reports
           </NavLink>
         </li>
+
         <li className="sidebar-dropdown-item">
           <NavLink to="/transactions" className="sidebar-link">
             <i className="fas fa-exchange-alt"></i> Transaction Reports

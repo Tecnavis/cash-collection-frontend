@@ -146,11 +146,21 @@ const AddCollectionPlan = () => {
       setTimeout(() => setMessage(""), 5000);
     } catch (error) {
       console.error("API Error:", error.response?.data);
-      setMessage(error.response?.data?.error || "Error adding collection entry.");
+    
+      // Show specific validation message if available
+      const backendErrors = error.response?.data;
+      if (backendErrors?.non_field_errors && Array.isArray(backendErrors.non_field_errors)) {
+        setMessage(backendErrors.non_field_errors[0]);
+      } else if (typeof backendErrors === "string") {
+        setMessage(backendErrors);
+      } else {
+        setMessage("Error adding collection entry.");
+      }
+    
       setMessageType("error");
-    } finally {
+    }finally{
       setLoading(false);
-    }
+  }
   };
   return (
     <div className="main-content">

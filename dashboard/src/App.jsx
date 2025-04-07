@@ -38,6 +38,7 @@ import Cookies from 'js-cookie';
 import ProtectedRoute from '../src/protectedroute/ProtectedRoute';
 import AddCollectionPlan from "./pages/AddCollectionPlan"
 import AllCollections from "./pages/AllCollections"
+import AllCollectionsProgress from "./pages/AllCollectionsProgress"
 import AllCollectionCustomer from "./pages/AllCollectionCustomer"
 import AllTransactions from "./pages/AllTransactions"
 import AllCustomerTransaction from "./pages/AllCustomerTransactions"
@@ -83,6 +84,8 @@ function App() {
             {/*collection plan add,view*/}
             <Route path="/collectionplan" element={<AddCollectionPlan />} />
             <Route path="/collections" element={<AllCollections />} />
+            <Route path="/collectionprogress" element={<AllCollectionsProgress />} />
+
             <Route path="/transactions" element={<AllTransactions/>} />
             <Route path="/customertransaction" element={<AllCustomerTransaction />} />
             <Route path="/allProduct" element={<AllProduct />} />   
