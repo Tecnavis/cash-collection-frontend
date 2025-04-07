@@ -64,7 +64,7 @@ const Header = () => {
             )}
           </div>
           <Link
-            to="/"
+            to="/dash"
             target="_blank"
             className="btn btn-sm btn-primary site-view-btn"
           >
@@ -101,9 +101,9 @@ const Header = () => {
                     placeholder="Search..."
                     required
                   />
-                  <button type="submit">
+                  {/* <button type="submit">
                     <i className="fa-solid fa-magnifying-glass"></i>
-                  </button>
+                  </button> */}
                 </form>
                 <div className="header-right-btns d-flex justify-content-end align-items-center p-0">
                   {/* <HeaderChat /> */}

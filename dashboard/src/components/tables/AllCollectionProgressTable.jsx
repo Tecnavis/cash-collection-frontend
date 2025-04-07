@@ -53,6 +53,8 @@ const AllCollectionProgressTable = () => {
     return boxes.join("");
   };
 
+  const totalPaidSum = filteredData.reduce((sum, entry) => sum + (entry.total_paid || 0), 0);
+
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
 
@@ -73,9 +75,9 @@ const AllCollectionProgressTable = () => {
         <tbody>
           {filteredData.map((entry) => {
             const name = `${entry.customer_details.first_name} ${entry.customer_details.last_name}`;
-            const totalInstallments = entry.installments_paid + (entry.installments_remaining || 0) || 10;
+            const totalInstallments =
+              entry.installments_paid + (entry.installments_remaining || 0) || 10;
             const paid = entry.installments_paid || 0;
-            const progressPercent = Math.min(entry.payment_progress * 100, 100).toFixed(0);
 
             return (
               <tr key={entry.id}>
@@ -85,12 +87,18 @@ const AllCollectionProgressTable = () => {
                 <td>₹{entry.installment_amount}</td>
                 <td>₹{entry.total_paid}</td>
                 <td>
-                  {renderInstallmentGrid(paid, totalInstallments)}{" "}
-                  ({paid}/{totalInstallments} paid)
+                  {renderInstallmentGrid(paid, totalInstallments)} ({paid}/{totalInstallments} paid)
                 </td>
               </tr>
             );
           })}
+          <tr>
+            <td colSpan="4" style={{ textAlign: "right", fontWeight: "bold" }}>
+              Total Paid:
+            </td>
+            <td style={{ fontWeight: "bold" }}>₹{totalPaidSum}</td>
+            <td></td>
+          </tr>
         </tbody>
       </Table>
     </div>
