@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Table, ProgressBar } from "react-bootstrap";
+import { Table } from "react-bootstrap";
 import Cookies from "js-cookie";
 import { BASE_URL } from "../../api";
 import AllCollectionProgressHeader from "../header/AllCollecionProgressHeader";
@@ -53,7 +53,21 @@ const AllCollectionProgressTable = () => {
     return boxes.join("");
   };
 
-  const totalPaidSum = filteredData.reduce((sum, entry) => sum + (entry.total_paid || 0), 0);
+  const calculateTotalPerScheme = () => {
+    const totals = {};
+    filteredData.forEach((entry) => {
+      const scheme = entry.scheme_name || "Unknown Scheme";
+      const paid = entry.total_paid || 0;
+      if (totals[scheme]) {
+        totals[scheme] += paid;
+      } else {
+        totals[scheme] = paid;
+      }
+    });
+    return totals;
+  };
+
+  const schemeTotals = calculateTotalPerScheme();
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
@@ -61,6 +75,25 @@ const AllCollectionProgressTable = () => {
   return (
     <div className="panel">
       <AllCollectionProgressHeader onSearch={handleSearch} />
+
+       {/* Summary of total paid per scheme */}
+       <h5 className="mt-4">Total Paid Per Scheme</h5>
+      <Table bordered>
+        <thead>
+          <tr>
+            <th>Scheme</th>
+            <th>Total Paid</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(schemeTotals).map(([scheme, total]) => (
+            <tr key={scheme}>
+              <td>{scheme}</td>
+              <td>₹{total}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
       <Table striped bordered hover responsive>
         <thead>
           <tr>
@@ -87,18 +120,11 @@ const AllCollectionProgressTable = () => {
                 <td>₹{entry.installment_amount}</td>
                 <td>₹{entry.total_paid}</td>
                 <td>
-                  {renderInstallmentGrid(paid, totalInstallments)} ({paid}/{totalInstallments} paid)
+                ({paid}/{totalInstallments} paid) {renderInstallmentGrid(paid, totalInstallments)}
                 </td>
               </tr>
             );
           })}
-          <tr>
-            <td colSpan="4" style={{ textAlign: "right", fontWeight: "bold" }}>
-              Total Paid:
-            </td>
-            <td style={{ fontWeight: "bold" }}>₹{totalPaidSum}</td>
-            <td></td>
-          </tr>
         </tbody>
       </Table>
     </div>
