@@ -4,8 +4,6 @@ import Cookies from 'js-cookie';
 
 const ProtectedRoute = ({ isAuthenticated }) => {
   useEffect(() => {  
-    // console.log('ProtectedRoute - isAuthenticated:', isAuthenticated);
-    // console.log('ProtectedRoute - access_token exists:', !!Cookies.get('access_token'));
   }, [isAuthenticated]);
   const hasToken = !!Cookies.get('access_token');
   if (!isAuthenticated && !hasToken) {

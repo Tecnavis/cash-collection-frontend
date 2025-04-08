@@ -2,6 +2,7 @@ import { BrowserRouter as Router,Routes,Route} from "react-router-dom"
 import Dashboard from "./pages/Dashboard"
 import CrmDashboard from "./pages/CrmDashboard"
 import HrmDashboard from "./pages/HrmDashboard"
+import CustomerDashboard from "./pages/CustomerDashboard"
 import SweetAlert from "./pages/SweetAlert"
 import Charts from "./pages/Charts"
 import EditProfile from "./pages/EditProfile"
@@ -70,10 +71,12 @@ function App() {
               <Route path="/login" element={<Login/>}/>
           </Route> 
           <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
+          <Route path="/customerdashboard" element={<CustomerDashboard/>}/>
           <Route element={<Layout />}>
             <Route path="/dash" element={<Dashboard/>}/>
             <Route path="/dashboard" element={<CrmDashboard />} />
             <Route path="/hrmDashboard" element={<HrmDashboard/>}/>
+          
             <Route path="/table" element={<Table/>}/>
             <Route path="/sweetAlert" element={<SweetAlert/>}/>
             <Route path="/charts" element={<Charts/>}/>

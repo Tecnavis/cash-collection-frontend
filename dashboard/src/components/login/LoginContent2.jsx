@@ -40,6 +40,7 @@ const LoginContent2 = () => {
             Cookies.set('access_token', data.access_token, { expires: 1 });
             Cookies.set('refresh_token', data.refresh_token, { expires: 7 });
             Cookies.set('user_role', data.role.toUpperCase(), { expires: 1 });
+            Cookies.set('user_id', data.user_id, { expires: 1 });
 
             // Trigger authentication event
             window.dispatchEvent(new Event('auth-change'));
@@ -53,6 +54,9 @@ const LoginContent2 = () => {
                 redirectPath = '/dash';
             } else if (data.role.toUpperCase() === 'STAFF') {
                 redirectPath = '/hrmDashboard';
+            }
+            else if (data.role.toUpperCase() === 'CUSTOMER') {
+                redirectPath = '/customerDashboard';  
             }
 
             // Small delay to ensure cookies are properly set before navigation
@@ -69,48 +73,6 @@ const LoginContent2 = () => {
         setLoading(false);
     }
 };
-
-
-  // Handle login submission
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault(); // Fixed typo - removed stray 'A'
-  //   setLoading(true);
-  //   setError('');
-
-  //   try {
-  //     const response = await fetch(`${BASE_URL}/users/login/`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(formData),
-  //     });  
-  //     const data = await response.json();
-
-  //     if (response.ok) {
-  //       // Store tokens in cookies
-  //       Cookies.set('access_token', data.access_token, { expires: 1 }); 
-  //       Cookies.set('refresh_token', data.refresh_token, { expires: 7 }); 
-  //       Cookies.set('user_role', data.role.toUpperCase(), { expires: 1 });
-        
-  //       // Trigger a custom event to notify the app about authentication change
-  //       window.dispatchEvent(new Event('auth-change'));
-        
-  //       // Small delay to ensure cookies are properly set before navigation
-  //       setTimeout(() => {
-  //         navigate('/dashboard');
-  //       }, 100);
-  //     } else {
-  //       setError(data.detail || 'Invalid login credentials');
-  //     }
-  //   } catch (err) {
-  //     setError('Something went wrong. Please try again.');
-  //     console.error("Login error:", err);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   return (
     <div className="main-content login-panel login-panel-2">
       <h3 className="panel-title">Login</h3>
