@@ -47,7 +47,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!Cookies.get('access_token'));
 
   useEffect(() => {
-    // Check if user is authenticated
+    
     const checkAuth = () => {
       const hasToken = !!Cookies.get('access_token');
       setIsAuthenticated(hasToken);

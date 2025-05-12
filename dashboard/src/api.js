@@ -45,7 +45,7 @@ api.interceptors.response.use(
         const newAccessToken = refreshResponse.data.access;
         Cookies.set("access_token", newAccessToken, {
           expires: 1,
-          secure: window.location.protocol === "https:", // Use secure cookies only in HTTPS
+          secure: window.location.protocol === "https:", 
           sameSite: "Strict",
         });
 
