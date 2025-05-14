@@ -10,6 +10,7 @@ const AllCollectionProgressTable = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const BASE_AMOUNT = 204000; // Base amount for calculation
 
   useEffect(() => {
     fetchCustomerSchemes();
@@ -45,16 +46,16 @@ const AllCollectionProgressTable = () => {
     }
   };
 
-  const renderInstallmentGrid = (paid = 0, total = 10) => {
-    
-    const safePaid = Math.max(0, Math.min(Number(paid) || 0, Number(total) || 10));
-    const safeTotal = Math.max(1, Math.min(Number(total) || 10, 1000)); 
+  // Extract customer number from name
+  const extractCustomerNumber = (name) => {
+    const match = name.match(/\s*(\d+)$/);
+    return match ? parseInt(match[1]) : 1;
+  };
 
-    const boxes = [];
-    for (let i = 0; i < safeTotal; i++) {
-      boxes.push(i < safePaid ? "🟩" : "🟥");
-    }
-    return boxes.join("");
+  // Calculate total amount based on customer number
+  const calculateTotalAmount = (customerName) => {
+    const customerNumber = extractCustomerNumber(customerName);
+    return BASE_AMOUNT * customerNumber;
   };
 
   const calculateTotalPerScheme = () => {
@@ -71,23 +72,15 @@ const AllCollectionProgressTable = () => {
     return totals;
   };
 
- 
-  const extractCustomerSuffix = (name) => {
-    const match = name.match(/\s*(\d+)$/);
-    return match ? parseInt(match[1]) : 1;
-  };
-
-  
+  // Modified progress calculation
   const calculateCustomizedProgress = (entry) => {
-    const customerSuffix = extractCustomerSuffix(
-      `${entry.customer_details.first_name} ${entry.customer_details.last_name}`
-    );
+    const customerName = `${entry.customer_details.first_name} ${entry.customer_details.last_name}`;
+    const customerNumber = extractCustomerNumber(customerName);
     
-    const baseTotal = 51; 
-    const multiplier = customerSuffix;
-    const totalInstallments = baseTotal * multiplier;
+    const baseTotal = 51; // Default base total
+    const totalInstallments = baseTotal * customerNumber;
     
-    
+    // Safely parse installments
     const paid = Number(entry.installments_paid) || 0;
     const totalPossibleInstallments = totalInstallments;
 
@@ -106,7 +99,7 @@ const AllCollectionProgressTable = () => {
     <div className="panel">
       <AllCollectionProgressHeader onSearch={handleSearch} />
 
-      
+      {/* Summary of total paid per scheme */}
       <h5 className="mt-4">Total Paid Per Scheme</h5>
       <Table bordered>
         <thead>
@@ -139,12 +132,13 @@ const AllCollectionProgressTable = () => {
           {filteredData.map((entry) => {
             const name = `${entry.customer_details.first_name} ${entry.customer_details.last_name}`;
             const progress = calculateCustomizedProgress(entry);
+            const totalAmount = calculateTotalAmount(name);
 
             return (
               <tr key={entry.id}>
                 <td>{name}</td>
                 <td>{entry.scheme_name}</td>
-                <td>₹{entry.scheme_total_amount}</td>
+                <td>₹{totalAmount.toLocaleString()}</td>
                 <td>₹{entry.installment_amount}</td>
                 <td>₹{entry.total_paid}</td>
                 <td style={{
@@ -156,9 +150,6 @@ const AllCollectionProgressTable = () => {
                 }}>
                   <span style={{whiteSpace: 'nowrap'}}>
                     ({progress.paid}/{progress.totalInstallments} paid)
-                  </span>
-                  <span>
-                    {renderInstallmentGrid(progress.paid, progress.totalInstallments)}
                   </span>
                 </td>
               </tr>

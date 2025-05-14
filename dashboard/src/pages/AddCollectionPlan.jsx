@@ -21,6 +21,8 @@ const AddCollectionPlan = () => {
   const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [uniqueSchemes, setUniqueSchemes] = useState([]);
   const [selectedSchemeTotal, setSelectedSchemeTotal] = useState(0);
+  const [baseAmount, setBaseAmount] = useState(204000); // Base amount set to 204000
+  const [multiplier, setMultiplier] = useState(1); // Default multiplier
 
   useEffect(() => {
     fetchCustomerSchemes();
@@ -56,8 +58,28 @@ const AddCollectionPlan = () => {
     }),
   };
   
+  // Extract the multiplier from customer name and update the total scheme amount
   const handleCustomerSelect = (selectedOption) => {
-    setFormData({ ...formData, customer: selectedOption ? selectedOption.value : "" });
+    if (selectedOption) {
+      const customerName = selectedOption.label;
+      // Extract the number after the name (e.g., "vin 2" -> 2)
+      const nameMatch = customerName.match(/(\w+)\s+(\d+)/);
+      
+      if (nameMatch && nameMatch[2]) {
+        const extractedMultiplier = parseInt(nameMatch[2], 10);
+        setMultiplier(extractedMultiplier || 1);
+        setSelectedSchemeTotal(baseAmount * extractedMultiplier);
+      } else {
+        setMultiplier(1);
+        setSelectedSchemeTotal(baseAmount);
+      }
+      
+      setFormData({ ...formData, customer: selectedOption.value });
+    } else {
+      setFormData({ ...formData, customer: "" });
+      setMultiplier(1);
+      setSelectedSchemeTotal(baseAmount);
+    }
   };
 
   const handleChange = (e) => {
@@ -67,7 +89,11 @@ const AddCollectionPlan = () => {
       const selectedScheme = uniqueSchemes.find((s) => s.scheme === Number(value));
       setFormData({ ...formData, scheme: value, customer: "" });
       setFilteredCustomers(customerSchemes.filter((cs) => cs.scheme === Number(value)));
-      setSelectedSchemeTotal(selectedScheme ? parseFloat(selectedScheme.scheme_total_amount) : 0);
+      
+      // Reset the scheme total to the base amount initially
+      setBaseAmount(selectedScheme ? parseFloat(selectedScheme.scheme_total_amount) : 204000);
+      setSelectedSchemeTotal(selectedScheme ? parseFloat(selectedScheme.scheme_total_amount) : 204000);
+      setMultiplier(1);
     } else if (name === "amount") {
       // Prevent amount from exceeding total scheme amount
       const amountValue = parseFloat(value);
@@ -142,6 +168,8 @@ const AddCollectionPlan = () => {
         notes: "",
       });
       setFilteredCustomers([]);
+      setMultiplier(1);
+      setSelectedSchemeTotal(204000);
 
       setTimeout(() => setMessage(""), 5000);
     } catch (error) {
@@ -158,10 +186,11 @@ const AddCollectionPlan = () => {
       }
     
       setMessageType("error");
-    }finally{
+    } finally {
       setLoading(false);
-  }
+    }
   };
+  
   return (
     <div className="main-content">
       <AddNewBreadcrumb link="/collections" title="Add Collection Entry" />
@@ -191,19 +220,8 @@ const AddCollectionPlan = () => {
                       ))}
                     </select>
                   </div>
-                  {formData.scheme && (
-                    <div className="col-lg-4 col-sm-6">
-                      <label className="form-label">Total Scheme Amount</label>
-                      <input
-                        type="text"
-                        className="form-control form-control-sm"
-                        value={selectedSchemeTotal}
-                        readOnly
-                      />
-                    </div>
-                  )}
-
-                <div className="col-lg-4 col-sm-6">
+                  
+                  <div className="col-lg-4 col-sm-6">
                     <label className="form-label">Customer</label>
                     <ReactSelect
                         styles={customStyles}
@@ -229,6 +247,18 @@ const AddCollectionPlan = () => {
                       />
                     {!formData.scheme && <small className="text-muted">Select a scheme first</small>}
                   </div>
+
+                  {formData.scheme && (
+                    <div className="col-lg-4 col-sm-6">
+                      <label className="form-label">Total Scheme Amount (Base: {baseAmount} × {multiplier})</label>
+                      <input
+                        type="text"
+                        className="form-control form-control-sm"
+                        value={selectedSchemeTotal}
+                        readOnly
+                      />
+                    </div>
+                  )}
 
                   <div className="col-lg-4 col-sm-6">
                     <label className="form-label">Amount Collected</label>

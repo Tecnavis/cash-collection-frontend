@@ -25,10 +25,6 @@ const AllCollectionCustomerTable = () => {
   useEffect(() => {
     fetchCustomers(currentPage);
   }, [currentPage]);
-
-  useEffect(() => {
-    fetchCustomers(currentPage);
-  }, [currentPage]);
   
   const fetchCustomers = async (page) => {
     try {
@@ -37,9 +33,11 @@ const AllCollectionCustomerTable = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
   
-      const formattedCustomers = response.data.map((customer) => ({
-        id:customer.id,
-        profile_id: customer.profile_id,
+      // Add serial numbers to the customer data
+      const formattedCustomers = response.data.map((customer, index) => ({
+        id: customer.id,
+        // Use sequential numbers as profile_id instead of customer.profile_id
+        profile_id: (index + 1).toString(),
         shop_name: customer.shop_name,
         first_name: customer.user.first_name,
         last_name: customer.user.last_name,
@@ -48,6 +46,8 @@ const AllCollectionCustomerTable = () => {
         secondary_contact: customer.secondary_contact || "N/A",
         address: customer.address || "N/A",
         other_info: customer.other_info || "N/A",
+        // Store the original profile_id for backend operations
+        original_profile_id: customer.profile_id,
         showDropdown: false, 
       }));
   
@@ -103,8 +103,14 @@ const AllCollectionCustomerTable = () => {
         throw new Error("Invalid data received");
       }
   
+      // Find the customer in our local data to get the sequential profile_id
+      const customerWithSeqId = customers.find(c => c.id === id);
+      const sequentialProfileId = customerWithSeqId ? customerWithSeqId.profile_id : "N/A";
+  
       setSelectedEmployee({
-        profile_id: data.profile_id || "N/A",
+        id: data.id,
+        profile_id: sequentialProfileId,
+        original_profile_id: data.profile_id,
         shop_name: data.shop_name || "N/A",
         first_name: data.user.first_name || "N/A",
         last_name: data.user.last_name || "N/A",
@@ -124,93 +130,105 @@ const AllCollectionCustomerTable = () => {
     }
   };
   
-    const handleOpenEditModal = (customer) => {
-      setSelectedEmployee({ ...customer, isEditing: true });
-      setOriginalEmployee({ ...customer });
-      setShowModal(true);
+  const handleOpenEditModal = (customer) => {
+    setSelectedEmployee({ ...customer, isEditing: true });
+    setOriginalEmployee({ ...customer });
+    setShowModal(true);
   };
 
   const handleEditClick = (employee) => {
-      setOriginalEmployee({ ...employee }); 
-      setSelectedEmployee({ ...employee }); 
+    setOriginalEmployee({ ...employee }); 
+    setSelectedEmployee({ ...employee }); 
   };
+
   const handleUpdateEmployee = async () => {
-      if (!selectedEmployee || !selectedEmployee.id) {
-          return;
-      }
-      if (!originalEmployee) {
-          return;
-      }
-      const userPayload = {
-          first_name: selectedEmployee.first_name || "",
-          last_name: selectedEmployee.last_name || "",
-          contact_number: selectedEmployee.contact_number || ""
-      };
+    if (!selectedEmployee || !selectedEmployee.id) {
+      return;
+    }
+    if (!originalEmployee) {
+      return;
+    }
+    const userPayload = {
+      first_name: selectedEmployee.first_name || "",
+      last_name: selectedEmployee.last_name || "",
+      contact_number: selectedEmployee.contact_number || ""
+    };
 
-      if (selectedEmployee.email !== originalEmployee.email) {
-          userPayload.email = selectedEmployee.email || "";
-      }
-      try {
-          const response = await fetch(`${BASE_URL}/partner/customers/${selectedEmployee.id}/update/`, {
-              method: "PATCH",
-              headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${Cookies.get("access_token")}`
-              },
-              body: JSON.stringify({
-                  profile_id: selectedEmployee.profile_id || selectedEmployee.id,
-                  shop_name: selectedEmployee.shop_name || "",
-                  secondary_contact: selectedEmployee.secondary_contact || "",
-                  address: selectedEmployee.address || "",
-                  other_info: selectedEmployee.other_info || "",
-                  user: userPayload  
-              }),
-          });
+    if (selectedEmployee.email !== originalEmployee.email) {
+      userPayload.email = selectedEmployee.email || "";
+    }
+    try {
+      const response = await fetch(`${BASE_URL}/partner/customers/${selectedEmployee.id}/update/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Cookies.get("access_token")}`
+        },
+        body: JSON.stringify({
+          // Use the original profile_id for the backend, not our sequential one
+          profile_id: selectedEmployee.original_profile_id || selectedEmployee.id,
+          shop_name: selectedEmployee.shop_name || "",
+          secondary_contact: selectedEmployee.secondary_contact || "",
+          address: selectedEmployee.address || "",
+          other_info: selectedEmployee.other_info || "",
+          user: userPayload  
+        }),
+      });
 
-          if (!response.ok) {
-              const errorData = await response.json();
-              const errorMessage = errorData.message || errorData.detail || "Unknown error";
-              console.error("Error updating employee:", errorMessage);
-              alert(`Failed to update employee: ${errorMessage}`);
-              return;
-          }
-          const updatedData = await response.json();
-          fetchCustomers(currentPage);
-          setShowModal(false);
-
-      } catch (error) {
-          console.error("Network error:", error);
-          alert("A network error occurred. Please try again later.");
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = errorData.message || errorData.detail || "Unknown error";
+        console.error("Error updating employee:", errorMessage);
+        alert(`Failed to update employee: ${errorMessage}`);
+        return;
       }
+      const updatedData = await response.json();
+      fetchCustomers(currentPage);
+      setShowModal(false);
+
+    } catch (error) {
+      console.error("Network error:", error);
+      alert("A network error occurred. Please try again later.");
+    }
   };
 
-    const handleDeleteEmployee = async (id) => {
-        if (window.confirm("Are you sure you want to delete this employee?")) {
-          try {
-            const response = await fetch(`${BASE_URL}/partner/customers/${id}/delete/`, {
-              method: "DELETE",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${Cookies.get("access_token")}`
-              },
-            });
-      
-            if (response.ok) {
-              setDataList(dataList.filter((employee) => employee.id !== id));
-              setShowModal(false);
-            } else {
-              console.error("Failed to delete employee:", await response.text());
-            }
-          } catch (error) {
-            console.error("Error deleting employee:", error);
-          }
-          fetchCustomers(); 
+  const handleDeleteEmployee = async (id) => {
+    if (window.confirm("Are you sure you want to delete this employee?")) {
+      try {
+        const response = await fetch(`${BASE_URL}/partner/customers/${id}/delete/`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Cookies.get("access_token")}`
+          },
+        });
+  
+        if (response.ok) {
+          // Update local state immediately to reflect deletion
+          setDataList(dataList.filter((employee) => employee.id !== id));
+          setShowModal(false);
+          // Refetch data to get updated sequential IDs
+          fetchCustomers(currentPage);
+        } else {
+          console.error("Failed to delete employee:", await response.text());
         }
-      };
+      } catch (error) {
+        console.error("Error deleting employee:", error);
+      }
+    }
+  };
+
+  // Calculate the starting index for profile ID on the current page
+  const getStartingIndex = () => {
+    return (currentPage - 1) * dataPerPage;
+  };
+
   const currentData = dataList.slice((currentPage - 1) * dataPerPage, currentPage * dataPerPage);
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  
   if (loading) return <p>Loading customers...</p>;
   if (error) return <p>{error}</p>;
+  
   return (
     <>
       <AllCollectionCustomerHeader onSearch={handleSearch} />
@@ -233,7 +251,7 @@ const AllCollectionCustomerTable = () => {
           {currentData.length > 0 ? (
             currentData.map((customer, index) => (
               <tr key={index}>
-                <td>{customer.profile_id}</td>
+                <td>{getStartingIndex() + index + 1}</td>
                 <td>{customer.shop_name}</td>
                 <td>{`${customer.first_name} ${customer.last_name}`}</td>
                 <td>{customer.email}</td>
@@ -257,12 +275,11 @@ const AllCollectionCustomerTable = () => {
                     onClick={() => handleDeleteEmployee(customer.id)}
                   ></i>
                 </td>
-
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="7">No customers found</td>
+              <td colSpan="8">No customers found</td>
             </tr>
           )}
         </tbody>
@@ -279,16 +296,14 @@ const AllCollectionCustomerTable = () => {
                       </div>
                       <div className="modal-body">
                         <form>
-                          {/* Profile ID */}
+                          {/* Profile ID - Read-only since it's auto-generated */}
                           <div className="mb-3">
                             <label className="form-label">Profile ID</label>
                             <input
                               type="text"
                               className="form-control"
                               value={selectedEmployee.profile_id || ""}
-                              onChange={(e) =>
-                                setSelectedEmployee({ ...selectedEmployee, profile_id: e.target.value })
-                              }
+                              readOnly
                             />
                           </div>
                           {/* Shop Name */}
@@ -404,7 +419,7 @@ const AllCollectionCustomerTable = () => {
                             <p><strong>Email:</strong> {selectedEmployee?.email || "N/A"}</p>
                             <p><strong>Primary Contact:</strong> {selectedEmployee?.contact_number || "N/A"}</p>
                             <p><strong>Secondary Contact:</strong> {selectedEmployee?.secondary_contact || "N/A"}</p>
-                            <p><strong>Address:</strong> {selectedEmployee?.shop_name || "N/A"}</p>
+                            <p><strong>Address:</strong> {selectedEmployee?.address || "N/A"}</p>
                             <p><strong>Other Info:</strong> {selectedEmployee?.other_info || "N/A"}</p>
                           </div>
                           <div className="modal-footer justify-content-center">

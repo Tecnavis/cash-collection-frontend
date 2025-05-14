@@ -78,10 +78,54 @@ const AllCustomerTransactionTable = () => {
     }
   };
 
+  // Extract number from customer name - Improved regex
+  const extractCustomerNumber = (customer) => {
+    const fullName = `${customer.customer_details.first_name} ${customer.customer_details.last_name}`;
+    
+    // Better regex that finds any number in the name
+    // This pattern will find numbers before a hyphen or at the end of the string
+    const regex = /(\d+)(?:\s*-|\s*$)/;
+    const match = fullName.match(regex);
+    
+    if (match && match[1]) {
+      const number = parseInt(match[1]);
+      console.log(`Extracted multiplier for ${fullName}: ${number}`);
+      return number;
+    }
+    
+    console.log(`No multiplier found in ${fullName}, using default: 1`);
+    return 1; // Default to 1 if no number found
+  };
+
+  // Calculate scheme total based on customer number
+  const calculateSchemeTotal = (scheme, customer) => {
+    const customerNumber = extractCustomerNumber(customer);
+    const baseAmount = 204000; // Base amount as per requirement
+    return customerNumber * baseAmount;
+  };
+
   const handleShowModal = (scheme, customer) => {
-    setSelectedScheme(scheme);
+    // Get the customer multiplier
+    const customerMultiplier = extractCustomerNumber(customer);
+    const baseAmount = 204000;
+    const adjustedTotal = customerMultiplier * baseAmount;
+    
+    // Create a new scheme object with the adjusted total amount
+    const adjustedScheme = {
+      ...scheme,
+      original_total_amount: scheme.scheme_total_amount,
+      scheme_total_amount: adjustedTotal,
+      multiplier: customerMultiplier
+    };
+    
+    setSelectedScheme(adjustedScheme);
     setSelectedCustomer(customer);
     setShowModal(true);
+    
+    console.log("Customer:", customer.customer_details.first_name, customer.customer_details.last_name);
+    console.log("Customer multiplier:", customerMultiplier);
+    console.log("Original scheme total:", scheme.scheme_total_amount);
+    console.log("Adjusted scheme total:", adjustedTotal);
   };
 
   const downloadPDF = async () => {
@@ -127,6 +171,15 @@ const AllCustomerTransactionTable = () => {
     setFilteredCustomers(filtered);
   };
 
+  // Format currency for display
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(amount).replace('₹', '₹');
+  };
+
   if (loading) return <p>Loading transactions...</p>;
   if (error) return <p>{error}</p>;
 
@@ -168,10 +221,11 @@ const AllCustomerTransactionTable = () => {
               <td>
                 {customer.schemes.map((scheme, idx) => (
                   <div key={idx}>
-                    ₹
-                    {scheme.payment_history.reduce(
-                      (sum, payment) => sum + parseFloat(payment.amount),
-                      0
+                    {formatCurrency(
+                      scheme.payment_history.reduce(
+                        (sum, payment) => sum + parseFloat(payment.amount),
+                        0
+                      )
                     )}
                   </div>
                 ))}
@@ -196,26 +250,31 @@ const AllCustomerTransactionTable = () => {
               boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
             }}
           >
-            {selectedScheme ? (
+            {selectedScheme && selectedCustomer ? (
               <div>
                 <h5>{selectedScheme.scheme_name}</h5>
                 <p>
-                  <strong>Total Amount:</strong> ₹{selectedScheme.scheme_total_amount}
-                </p>
-                <p>
-                  <strong>Total Paid:</strong> ₹
-                  {selectedScheme.payment_history.reduce(
-                    (sum, payment) => sum + parseFloat(payment.amount),
-                    0
+                  <strong>Total Amount:</strong> {formatCurrency(selectedScheme.scheme_total_amount)}
+                  {selectedScheme.multiplier > 1 && (
+                    <span className="text-muted"> (Base Amount: {formatCurrency(204000)} × {selectedScheme.multiplier})</span>
                   )}
                 </p>
                 <p>
-                  <strong>Remaining:</strong> ₹
-                  {selectedScheme.scheme_total_amount -
+                  <strong>Total Paid:</strong> {formatCurrency(
                     selectedScheme.payment_history.reduce(
                       (sum, payment) => sum + parseFloat(payment.amount),
                       0
-                    )}
+                    )
+                  )}
+                </p>
+                <p>
+                  <strong>Remaining:</strong> {formatCurrency(
+                    selectedScheme.scheme_total_amount -
+                    selectedScheme.payment_history.reduce(
+                      (sum, payment) => sum + parseFloat(payment.amount),
+                      0
+                    )
+                  )}
                 </p>
                 {selectedScheme.payment_history.length > 0 ? (
                   <Table striped bordered>
@@ -229,7 +288,7 @@ const AllCustomerTransactionTable = () => {
                     <tbody>
                       {selectedScheme.payment_history.map((payment, index) => (
                         <tr key={index}>
-                          <td>₹{payment.amount}</td>
+                          <td>{formatCurrency(payment.amount)}</td>
                           <td>{payment.payment_method}</td>
                           <td>
                             {new Date(payment.date).toLocaleDateString("en-IN", {
@@ -279,18 +338,13 @@ const AllCustomerTransactionTable = () => {
               Payment Receipt
             </h2>
             <p>
-              <strong>Customer:</strong>{" "}
-              {selectedCustomer.customer_details.first_name}{" "}
-              {selectedCustomer.customer_details.last_name} -{" "}
-              {selectedCustomer.customer_details.shop_name}
-            </p>
-            <p>
-              <strong>Contact:</strong>{" "}
-              {selectedCustomer.customer_details.contact_number}
-            </p>
-            <p>
               <strong>Scheme:</strong> {selectedScheme.scheme_name}
             </p>
+            {selectedScheme.multiplier > 1 && (
+              <p>
+                <strong>Customer Multiplier:</strong> {selectedScheme.multiplier}x
+              </p>
+            )}
             <Table bordered size="sm">
               <thead>
                 <tr>
@@ -302,7 +356,7 @@ const AllCustomerTransactionTable = () => {
               <tbody>
                 {selectedScheme.payment_history.map((payment, index) => (
                   <tr key={index}>
-                    <td>₹{payment.amount}</td>
+                    <td>{formatCurrency(payment.amount)}</td>
                     <td>{payment.payment_method}</td>
                     <td>{new Date(payment.date).toLocaleDateString("en-IN")}</td>
                   </tr>
@@ -312,10 +366,11 @@ const AllCustomerTransactionTable = () => {
                     Total Paid
                   </td>
                   <td>
-                    ₹
-                    {selectedScheme.payment_history.reduce(
-                      (sum, payment) => sum + parseFloat(payment.amount),
-                      0
+                    {formatCurrency(
+                      selectedScheme.payment_history.reduce(
+                        (sum, payment) => sum + parseFloat(payment.amount),
+                        0
+                      )
                     )}
                   </td>
                 </tr>
@@ -324,19 +379,20 @@ const AllCustomerTransactionTable = () => {
                     Remaining
                   </td>
                   <td>
-                    ₹
-                    {selectedScheme.scheme_total_amount -
-                      selectedScheme.payment_history.reduce(
-                        (sum, payment) => sum + parseFloat(payment.amount),
-                        0
-                      )}
+                    {formatCurrency(
+                      selectedScheme.scheme_total_amount -
+                        selectedScheme.payment_history.reduce(
+                          (sum, payment) => sum + parseFloat(payment.amount),
+                          0
+                        )
+                    )}
                   </td>
                 </tr>
                 <tr style={{ fontWeight: "bold", backgroundColor: "#e6f7ff" }}>
                   <td colSpan="2" style={{ textAlign: "right" }}>
                     Scheme Total
                   </td>
-                  <td>₹{selectedScheme.scheme_total_amount}</td>
+                  <td>{formatCurrency(selectedScheme.scheme_total_amount)}</td>
                 </tr>
               </tbody>
             </Table>

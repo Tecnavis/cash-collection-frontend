@@ -24,7 +24,7 @@ const AllCollectionTable = () => {
         },
       });
       setTransactions(response.data);
-      setFilteredTransactions(response.data); 
+      setFilteredTransactions(response.data); // Initialize filtered list
     } catch (error) {
       setError("Error fetching transactions");
     } finally {
