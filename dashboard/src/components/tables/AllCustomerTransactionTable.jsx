@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Table, Modal, Button } from "react-bootstrap";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { BASE_URL } from "../../api";
 import Cookies from "js-cookie";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import AllCustomerTransactionHeader from "../header/AllCustomerTransactionHeader";
+import PaginationSection from "./PaginationSection";
 
 const AllCustomerTransactionTable = () => {
   const [customers, setCustomers] = useState([]);
@@ -15,7 +17,10 @@ const AllCustomerTransactionTable = () => {
   const [selectedScheme, setSelectedScheme] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const pdfRef = useRef(); // for PDF only
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [dataPerPage] = useState(10);
+  const pdfRef = useRef(); 
 
   useEffect(() => {
     fetchTransactions();
@@ -70,47 +75,46 @@ const AllCustomerTransactionTable = () => {
       }, []);
 
       setCustomers(groupedCustomers);
-      setFilteredCustomers(groupedCustomers); // initialize filtered data
+      setFilteredCustomers(groupedCustomers); 
+      setTotalPages(Math.ceil(groupedCustomers.length / dataPerPage));
     } catch (error) {
+      console.error("Error fetching transactions:", error);
       setError("Error fetching transactions");
     } finally {
       setLoading(false);
     }
   };
 
-  // Extract number from customer name - Improved regex
+  
   const extractCustomerNumber = (customer) => {
     const fullName = `${customer.customer_details.first_name} ${customer.customer_details.last_name}`;
     
-    // Better regex that finds any number in the name
-    // This pattern will find numbers before a hyphen or at the end of the string
+    
     const regex = /(\d+)(?:\s*-|\s*$)/;
     const match = fullName.match(regex);
     
     if (match && match[1]) {
       const number = parseInt(match[1]);
-      console.log(`Extracted multiplier for ${fullName}: ${number}`);
       return number;
     }
     
-    console.log(`No multiplier found in ${fullName}, using default: 1`);
-    return 1; // Default to 1 if no number found
+    return 1; 
   };
 
-  // Calculate scheme total based on customer number
+  
   const calculateSchemeTotal = (scheme, customer) => {
     const customerNumber = extractCustomerNumber(customer);
-    const baseAmount = 204000; // Base amount as per requirement
+    const baseAmount = 204000; 
     return customerNumber * baseAmount;
   };
 
   const handleShowModal = (scheme, customer) => {
-    // Get the customer multiplier
+    
     const customerMultiplier = extractCustomerNumber(customer);
     const baseAmount = 204000;
     const adjustedTotal = customerMultiplier * baseAmount;
     
-    // Create a new scheme object with the adjusted total amount
+    
     const adjustedScheme = {
       ...scheme,
       original_total_amount: scheme.scheme_total_amount,
@@ -121,11 +125,6 @@ const AllCustomerTransactionTable = () => {
     setSelectedScheme(adjustedScheme);
     setSelectedCustomer(customer);
     setShowModal(true);
-    
-    console.log("Customer:", customer.customer_details.first_name, customer.customer_details.last_name);
-    console.log("Customer multiplier:", customerMultiplier);
-    console.log("Original scheme total:", scheme.scheme_total_amount);
-    console.log("Adjusted scheme total:", adjustedTotal);
   };
 
   const downloadPDF = async () => {
@@ -147,6 +146,8 @@ const AllCustomerTransactionTable = () => {
   const handleSearch = (query) => {
     if (query.trim() === "") {
       setFilteredCustomers(customers);
+      setTotalPages(Math.ceil(customers.length / dataPerPage));
+      setCurrentPage(1);
       return;
     }
 
@@ -169,9 +170,11 @@ const AllCustomerTransactionTable = () => {
     });
 
     setFilteredCustomers(filtered);
+    setTotalPages(Math.ceil(filtered.length / dataPerPage));
+    setCurrentPage(1);
   };
 
-  // Format currency for display
+  
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -180,6 +183,14 @@ const AllCustomerTransactionTable = () => {
     }).format(amount).replace('₹', '₹');
   };
 
+  
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  
+  
+  const indexOfLastCustomer = currentPage * dataPerPage;
+  const indexOfFirstCustomer = indexOfLastCustomer - dataPerPage;
+  const currentCustomers = filteredCustomers.slice(indexOfFirstCustomer, indexOfLastCustomer);
+
   if (loading) return <p>Loading transactions...</p>;
   if (error) return <p>{error}</p>;
 
@@ -187,55 +198,71 @@ const AllCustomerTransactionTable = () => {
     <div className="panel">
       <AllCustomerTransactionHeader onSearch={handleSearch} />
 
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Customer Name</th>
-            <th>Contact</th>
-            <th>Joined Schemes</th>
-            <th>Total Paid Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredCustomers.map((customer, index) => (
-            <tr key={index}>
-              <td>
-                {customer.customer_details.first_name}{" "}
-                {customer.customer_details.last_name} -{" "}
-                {customer.customer_details.shop_name}
-              </td>
-              <td>{customer.customer_details.contact_number}</td>
-              <td>
-                {customer.schemes.map((scheme, idx) => (
-                  <div key={idx}>
-                    <Button
-                      variant="link"
-                      onClick={() => handleShowModal(scheme, customer)}
-                      style={{ textDecoration: "none", fontWeight: "bold" }}
-                    >
-                      {scheme.scheme_name}
-                    </Button>
-                  </div>
-                ))}
-              </td>
-              <td>
-                {customer.schemes.map((scheme, idx) => (
-                  <div key={idx}>
-                    {formatCurrency(
-                      scheme.payment_history.reduce(
-                        (sum, payment) => sum + parseFloat(payment.amount),
-                        0
-                      )
-                    )}
-                  </div>
-                ))}
-              </td>
+      <OverlayScrollbarsComponent>
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>Customer Name</th>
+              <th>Contact</th>
+              <th>Joined Schemes</th>
+              <th>Total Paid Amount</th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {currentCustomers.length > 0 ? (
+              currentCustomers.map((customer, index) => (
+                <tr key={index}>
+                  <td>
+                    {customer.customer_details.first_name}{" "}
+                    {customer.customer_details.last_name} -{" "}
+                    {customer.customer_details.shop_name}
+                  </td>
+                  <td>{customer.customer_details.contact_number}</td>
+                  <td>
+                    {customer.schemes.map((scheme, idx) => (
+                      <div key={idx}>
+                        <Button
+                          variant="link"
+                          onClick={() => handleShowModal(scheme, customer)}
+                          style={{ textDecoration: "none", fontWeight: "bold" }}
+                        >
+                          {scheme.scheme_name}
+                        </Button>
+                      </div>
+                    ))}
+                  </td>
+                  <td>
+                    {customer.schemes.map((scheme, idx) => (
+                      <div key={idx}>
+                        {formatCurrency(
+                          scheme.payment_history.reduce(
+                            (sum, payment) => sum + parseFloat(payment.amount),
+                            0
+                          )
+                        )}
+                      </div>
+                    ))}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4">No transactions found</td>
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </OverlayScrollbarsComponent>
 
-      {/* Modal View */}
+      
+      <PaginationSection
+        currentPage={currentPage}
+        totalPages={totalPages}
+        paginate={paginate}
+        pageNumbers={Array.from({ length: totalPages }, (_, i) => i + 1)}
+      />
+
+      
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Payment Receipt</Modal.Title>
@@ -277,7 +304,7 @@ const AllCustomerTransactionTable = () => {
                   )}
                 </p>
                 {selectedScheme.payment_history.length > 0 ? (
-                  <Table striped bordered>
+                  <Table striped bordered responsive>
                     <thead>
                       <tr>
                         <th>Amount</th>
@@ -318,7 +345,7 @@ const AllCustomerTransactionTable = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Hidden PDF-Only Layout */}
+      
       <div
         ref={pdfRef}
         style={{
@@ -339,6 +366,12 @@ const AllCustomerTransactionTable = () => {
             </h2>
             <p>
               <strong>Scheme:</strong> {selectedScheme.scheme_name}
+            </p>
+            <p>
+              <strong>Customer:</strong> {selectedCustomer.customer_details.first_name} {selectedCustomer.customer_details.last_name}
+            </p>
+            <p>
+              <strong>Shop:</strong> {selectedCustomer.customer_details.shop_name}
             </p>
             {selectedScheme.multiplier > 1 && (
               <p>

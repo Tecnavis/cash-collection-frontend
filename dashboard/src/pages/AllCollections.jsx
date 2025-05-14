@@ -7,7 +7,7 @@ import AllCollectionTable from '../components/tables/AllCollectionTable'
 const AllCollectionMainContent = () => {
   return (
     <div className="main-content">
-        <div className="row g-4">
+        <div className="row">
             <div className="col-12">
                 <div className="panel">
                     {/* <AllCollectionHeader/> */}

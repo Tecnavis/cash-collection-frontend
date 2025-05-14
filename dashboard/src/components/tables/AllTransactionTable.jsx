@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Table, Button, Modal, Form, Alert } from "react-bootstrap";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
+import PaginationSection from "./PaginationSection";
 import { BASE_URL } from "../../api";
 import Cookies from "js-cookie";
 import AllTransactionsHeader from "../header/AllTransactionHeader";
@@ -13,31 +15,56 @@ const AllTransactionTable = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState("all");
   
-  // Add states for edit modal
+
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [currentTransaction, setCurrentTransaction] = useState(null);
   const [editFormData, setEditFormData] = useState({
     amount: "",
     payment_method: ""
   });
   
-  // Add state for delete confirmation modal
+  
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
   
-  // Add state for alerts
+  
   const [alertMessage, setAlertMessage] = useState("");
   const [alertVariant, setAlertVariant] = useState("success");
   const [showAlert, setShowAlert] = useState(false);
+
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [dataPerPage] = useState(300);
 
   useEffect(() => {
     fetchTransactions();
   }, []);
 
+  useEffect(() => {
+    
+    const indexOfLastItem = currentPage * dataPerPage;
+    const indexOfFirstItem = indexOfLastItem - dataPerPage;
+    const currentData = filteredTransactions.slice(indexOfFirstItem, indexOfLastItem);
+    
+    
+    setTotalPages(Math.ceil(filteredTransactions.length / dataPerPage));
+  }, [currentPage, filteredTransactions, dataPerPage]);
+
   const handleFilterChange = (e) => {
     const selectedFilter = e.target.value;
     setFilter(selectedFilter);
-    onFilterChange(selectedFilter);
+    
+    
+    if (selectedFilter === "all") {
+      setFilteredTransactions(transactions);
+    } else {
+      const filtered = transactions.filter(transaction => 
+        transaction.payment_method.toLowerCase() === selectedFilter.toLowerCase()
+      );
+      setFilteredTransactions(filtered);
+    }
   };
 
   const fetchTransactions = async () => {
@@ -52,6 +79,7 @@ const AllTransactionTable = () => {
       );
       setTransactions(response.data);
       setFilteredTransactions(response.data);
+      setTotalPages(Math.ceil(response.data.length / dataPerPage));
     } catch (error) {
       setError("Error fetching transactions");
       console.error("Error fetching transactions:", error);
@@ -62,6 +90,8 @@ const AllTransactionTable = () => {
 
   const handleSearch = (query) => {
     setSearchQuery(query);
+    setCurrentPage(1); 
+    
     if (query.trim() === "") {
       setFilteredTransactions(transactions);
     } else {
@@ -81,17 +111,23 @@ const AllTransactionTable = () => {
     ).toFixed(2);
   };
   
-  // Handle edit button click
+  
+  const handleViewClick = (transaction) => {
+    setCurrentTransaction(transaction);
+    setShowViewModal(true);
+  };
+  
+  
   const handleEditClick = (transaction) => {
     setCurrentTransaction(transaction);
     setEditFormData({
       amount: transaction.amount,
-      payment_method: transaction.payment_method.toLowerCase() // Convert to lowercase to match backend values
+      payment_method: transaction.payment_method.toLowerCase() 
     });
     setShowEditModal(true);
   };
   
-  // Handle form field changes
+  
   const handleEditFormChange = (e) => {
     const { name, value } = e.target;
     setEditFormData({
@@ -100,19 +136,19 @@ const AllTransactionTable = () => {
     });
   };
   
-  // Display alert message
+  
   const displayAlert = (message, variant) => {
     setAlertMessage(message);
     setAlertVariant(variant);
     setShowAlert(true);
     
-    // Hide alert after 5 seconds
+    
     setTimeout(() => {
       setShowAlert(false);
     }, 5000);
   };
   
-  // Handle update submission
+  
   const handleUpdateTransaction = async () => {
     try {
       const response = await axios.patch(
@@ -126,7 +162,7 @@ const AllTransactionTable = () => {
         }
       );
       
-      // Update the transactions in state
+      
       const updatedTransactions = transactions.map(tx => 
         tx.id === currentTransaction.id ? { ...tx, ...editFormData } : tx
       );
@@ -142,13 +178,13 @@ const AllTransactionTable = () => {
     }
   };
   
-  // Handle delete button click
+  
   const handleDeleteClick = (transaction) => {
     setTransactionToDelete(transaction);
     setShowDeleteModal(true);
   };
   
-  // Handle delete confirmation
+  
   const handleDeleteTransaction = async () => {
     try {
       await axios.delete(
@@ -160,7 +196,7 @@ const AllTransactionTable = () => {
         }
       );
       
-      // Remove the deleted transaction from state
+      
       const updatedTransactions = transactions.filter(
         tx => tx.id !== transactionToDelete.id
       );
@@ -176,8 +212,20 @@ const AllTransactionTable = () => {
     }
   };
 
+  
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  
+  const getCurrentTransactions = () => {
+    const indexOfLastItem = currentPage * dataPerPage;
+    const indexOfFirstItem = indexOfLastItem - dataPerPage;
+    return filteredTransactions.slice(indexOfFirstItem, indexOfLastItem);
+  };
+
   if (loading) return <p>Loading transactions...</p>;
   if (error) return <p>{error}</p>;
+
+  const currentTransactions = getCurrentTransactions();
 
   return (
     <div className="panel">
@@ -189,127 +237,204 @@ const AllTransactionTable = () => {
         </Alert>
       )}
 
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Collected At</th>
-            <th>Customer Name</th>
-            <th>Scheme</th>
-            <th>Amount</th>
-            <th>Payment Method</th>
-            <th>Created By</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredTransactions.map((transaction) => (
-            <tr key={transaction.id}>
-              <td>{new Date(transaction.created_at).toLocaleString()}</td>
-              <td>{transaction.customer_name || transaction.customer?.name || "N/A"}</td>
-              <td>{transaction.scheme_name || transaction.scheme?.name || "N/A"}</td>
-              <td>Rs {transaction.amount}</td>
-              <td>{transaction.payment_method}</td>
-              <td>{transaction.created_by || "Unknown"}</td>
-              <td>
-                <Button 
-                  variant="primary" 
-                  size="sm" 
-                  className="me-2" 
-                  onClick={() => handleEditClick(transaction)}
-                >
-                  Edit
-                </Button>
-                <Button 
-                  variant="danger" 
-                  size="sm" 
-                  onClick={() => handleDeleteClick(transaction)}
-                >
-                  Delete
-                </Button>
-              </td>
+      <div className="mb-3">
+        <Form.Group className="mb-3">
+          <Form.Label>Filter by Payment Method:</Form.Label>
+          <Form.Control
+            as="select"
+            value={filter}
+            onChange={handleFilterChange}
+            className="form-select"
+          >
+            <option value="all">All</option>
+            <option value="cash">Cash</option>
+            <option value="bank_transfer">Bank Transfer</option>
+            <option value="upi">UPI</option>
+          </Form.Control>
+        </Form.Group>
+      </div>
+
+      <OverlayScrollbarsComponent>
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>Collected At</th>
+              <th>Customer Name</th>
+              <th>Scheme</th>
+              <th>Amount</th>
+              <th>Payment Method</th>
+              <th>Created By</th>
+              <th>Actions</th>
             </tr>
-          ))}
-          <tr style={{ fontWeight: "bold", backgroundColor: "#f8f9fa" }}>
-            <td colSpan="3">Total</td>
-            <td>Rs {calculateTotalAmount()}</td>
-            <td colSpan="3"></td>
-          </tr>
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {currentTransactions.length > 0 ? (
+              currentTransactions.map((transaction) => (
+                <tr key={transaction.id}>
+                  <td>{new Date(transaction.created_at).toLocaleString()}</td>
+                  <td>{transaction.customer_name || transaction.customer?.name || "N/A"}</td>
+                  <td>{transaction.scheme_name || transaction.scheme?.name || "N/A"}</td>
+                  <td>Rs {transaction.amount}</td>
+                  <td>{transaction.payment_method}</td>
+                  <td>{transaction.created_by || "Unknown"}</td>
+                  <td>
+                    <i
+                      className="fa-light fa-eye text me-3 cursor-pointer"
+                      style={{ fontSize: "18px" }}
+                      onClick={() => handleViewClick(transaction)}
+                    ></i>
+                    <i
+                      className="fa-light fa-pen-nib text me-3 cursor-pointer"
+                      style={{ fontSize: "18px" }}
+                      onClick={() => handleEditClick(transaction)}
+                    ></i>
+                    <i
+                      className="fa-light fa-trash-can text cursor-pointer"
+                      style={{ fontSize: "18px" }}
+                      onClick={() => handleDeleteClick(transaction)}
+                    ></i>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="7">No transactions found</td>
+              </tr>
+            )}
+            <tr style={{ fontWeight: "bold", backgroundColor: "#f8f9fa" }}>
+              <td colSpan="3">Total</td>
+              <td>Rs {calculateTotalAmount()}</td>
+              <td colSpan="3"></td>
+            </tr>
+          </tbody>
+        </Table>
+      </OverlayScrollbarsComponent>
       
-      {/* Edit Transaction Modal */}
-      <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Edit Transaction</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            {/* Display customer name as read-only */}
-            <Form.Group className="mb-3">
-              <Form.Label>Customer</Form.Label>
-              <Form.Control
-                type="text"
-                value={currentTransaction?.customer_name || ""}
-                disabled
-              />
-              <Form.Text className="text-muted">
-                Customer name cannot be edited
-              </Form.Text>
-            </Form.Group>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>Amount</Form.Label>
-              <Form.Control
-                type="number"
-                name="amount"
-                value={editFormData.amount}
-                onChange={handleEditFormChange}
-              />
-            </Form.Group>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>Payment Method</Form.Label>
-              <Form.Control
-                as="select"
-                name="payment_method"
-                value={editFormData.payment_method}
-                onChange={handleEditFormChange}
-              >
-                <option value="cash">Cash</option>
-                <option value="bank_transfer">Bank Transfer</option>
-                <option value="upi">UPI</option>
-              </Form.Control>
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleUpdateTransaction}>
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      
+      {showViewModal && currentTransaction && (
+        <div className="modal fade show d-block" tabIndex="-1" role="dialog">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content shadow-lg border-0 rounded">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title">Transaction Details</h5>
+                <button type="button" className="btn-close" onClick={() => setShowViewModal(false)}></button>
+              </div>
+              <div className="modal-body p-4 text-center">
+                <i className="fa-solid fa-receipt fa-4x text-primary mb-3"></i>
+                <p><strong>Transaction Date:</strong> {new Date(currentTransaction.created_at).toLocaleString()}</p>
+                <p><strong>Customer:</strong> {currentTransaction.customer_name || "N/A"}</p>
+                <p><strong>Scheme:</strong> {currentTransaction.scheme_name || "N/A"}</p>
+                <p><strong>Amount:</strong> Rs {currentTransaction.amount}</p>
+                <p><strong>Payment Method:</strong> {currentTransaction.payment_method}</p>
+                <p><strong>Created By:</strong> {currentTransaction.created_by || "Unknown"}</p>
+              </div>
+              <div className="modal-footer justify-content-center">
+                <button type="button" className="btn btn-danger px-4" onClick={() => setShowViewModal(false)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      
+      {showEditModal && currentTransaction && (
+        <div className="modal fade show d-block" tabIndex="-1" role="dialog">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Edit Transaction</h5>
+                <button type="button" className="btn-close" onClick={() => setShowEditModal(false)}></button>
+              </div>
+              <div className="modal-body">
+                <Form>
+                  
+                  <div className="mb-3">
+                    <label className="form-label">Customer</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={currentTransaction?.customer_name || ""}
+                      readOnly
+                    />
+                    <small className="text-muted">
+                      Customer name cannot be edited
+                    </small>
+                  </div>
+                  
+                  <div className="mb-3">
+                    <label className="form-label">Amount</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      name="amount"
+                      value={editFormData.amount}
+                      onChange={handleEditFormChange}
+                    />
+                  </div>
+                  
+                  <div className="mb-3">
+                    <label className="form-label">Payment Method</label>
+                    <select
+                      className="form-select"
+                      name="payment_method"
+                      value={editFormData.payment_method}
+                      onChange={handleEditFormChange}
+                    >
+                      <option value="cash">Cash</option>
+                      <option value="bank_transfer">Bank Transfer</option>
+                      <option value="upi">UPI</option>
+                    </select>
+                  </div>
+                </Form>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowEditModal(false)}>
+                  Close
+                </button>
+                <button type="button" className="btn btn-primary" onClick={handleUpdateTransaction}>
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Delete Confirmation Modal */}
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm Delete</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Are you sure you want to delete this transaction for {transactionToDelete?.customer_name || "this customer"}?
-          This action cannot be undone.
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={handleDeleteTransaction}>
-            Delete
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {showDeleteModal && transactionToDelete && (
+        <div className="modal fade show d-block" tabIndex="-1" role="dialog">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Confirm Delete</h5>
+                <button type="button" className="btn-close" onClick={() => setShowDeleteModal(false)}></button>
+              </div>
+              <div className="modal-body">
+                Are you sure you want to delete this transaction for {transactionToDelete?.customer_name || "this customer"}?
+                This action cannot be undone.
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>
+                  Cancel
+                </button>
+                <button type="button" className="btn btn-danger" onClick={handleDeleteTransaction}>
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      
+      <PaginationSection
+        currentPage={currentPage}
+        totalPages={totalPages}
+        paginate={paginate}
+        pageNumbers={Array.from({ length: totalPages }, (_, i) => i + 1)}
+      />
     </div>
   );
 };

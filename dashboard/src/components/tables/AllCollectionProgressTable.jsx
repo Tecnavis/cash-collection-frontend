@@ -10,7 +10,7 @@ const AllCollectionProgressTable = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const BASE_AMOUNT = 204000; // Base amount for calculation
+  const BASE_AMOUNT = 204000;
 
   useEffect(() => {
     fetchCustomerSchemes();
@@ -46,13 +46,13 @@ const AllCollectionProgressTable = () => {
     }
   };
 
-  // Extract customer number from name
+
   const extractCustomerNumber = (name) => {
     const match = name.match(/\s*(\d+)$/);
     return match ? parseInt(match[1]) : 1;
   };
 
-  // Calculate total amount based on customer number
+
   const calculateTotalAmount = (customerName) => {
     const customerNumber = extractCustomerNumber(customerName);
     return BASE_AMOUNT * customerNumber;
@@ -72,15 +72,15 @@ const AllCollectionProgressTable = () => {
     return totals;
   };
 
-  // Modified progress calculation
+
   const calculateCustomizedProgress = (entry) => {
     const customerName = `${entry.customer_details.first_name} ${entry.customer_details.last_name}`;
     const customerNumber = extractCustomerNumber(customerName);
-    
-    const baseTotal = 51; // Default base total
+
+    const baseTotal = 51;
     const totalInstallments = baseTotal * customerNumber;
-    
-    // Safely parse installments
+
+
     const paid = Number(entry.installments_paid) || 0;
     const totalPossibleInstallments = totalInstallments;
 
@@ -99,7 +99,7 @@ const AllCollectionProgressTable = () => {
     <div className="panel">
       <AllCollectionProgressHeader onSearch={handleSearch} />
 
-      {/* Summary of total paid per scheme */}
+
       <h5 className="mt-4">Total Paid Per Scheme</h5>
       <Table bordered>
         <thead>
@@ -142,15 +142,20 @@ const AllCollectionProgressTable = () => {
                 <td>₹{entry.installment_amount}</td>
                 <td>₹{entry.total_paid}</td>
                 <td style={{
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'flex-start', 
-                  gap: '5px',
+                  textAlign: 'center',
+                  verticalAlign: 'middle', 
                   padding: '8px'
                 }}>
-                  <span style={{whiteSpace: 'nowrap'}}>
-                    ({progress.paid}/{progress.totalInstallments} paid)
-                  </span>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '5px'
+                  }}>
+                    <span style={{ whiteSpace: 'nowrap' }}>
+                      ({progress.paid}/{progress.totalInstallments} paid)
+                    </span>
+                  </div>
                 </td>
               </tr>
             );

@@ -13,11 +13,17 @@ const LoginContent2 = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   // Handle input change
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   const handleSubmit = async (e) => {
@@ -72,7 +78,8 @@ const LoginContent2 = () => {
     } finally {
         setLoading(false);
     }
-};
+  };
+
   return (
     <div className="main-content login-panel login-panel-2">
       <h3 className="panel-title">Login</h3>
@@ -81,7 +88,6 @@ const LoginContent2 = () => {
           <div className="logo">
             {/* <img src="assets/images/neo1.png" alt="Logo" /> */}
             <img src="assets/images/neo1.png" alt="Logo" className="img-fluid" style={{ maxWidth: '100px' }} />
-
           </div>
           <Link to="/"><i className="fa-duotone fa-house-chimney"></i></Link>
         </div>
@@ -101,7 +107,7 @@ const LoginContent2 = () => {
             </div>
             <div className="input-group mb-20">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 className="form-control"
                 placeholder="Password"
                 name="password"
@@ -109,7 +115,12 @@ const LoginContent2 = () => {
                 onChange={handleChange}
                 required
               />
-              <span className="input-group-text"><i className="fa-regular fa-lock"></i></span>
+              <span className="input-group-text password-toggle" onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
+                {showPassword ? 
+                  <i className="fa-regular fa-eye-slash"></i> : 
+                  <i className="fa-regular fa-eye"></i>
+                }
+              </span>
             </div>
 
             {error && <p className="text-danger">{error}</p>}

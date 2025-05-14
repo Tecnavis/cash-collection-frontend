@@ -102,7 +102,7 @@ const AllCustomerTable = () => {
   
 
     const handleOpenEditModal = (customer) => {
-      setOriginalEmployee({ ...customer });  // Store original data
+      setOriginalEmployee({ ...customer });  
       setSelectedEmployee({ ...customer, isEditing: true });
       setShowModal(true);
   };
@@ -240,7 +240,7 @@ const AllCustomerTable = () => {
         </Table>
           {showModal && selectedEmployee && (
             selectedEmployee.isEditing ? (
-              // Edit Modal
+              
               <div className="modal fade show d-block" tabIndex="-1" role="dialog">
                 <div className="modal-dialog modal-dialog-centered">
                   <div className="modal-content">
@@ -342,7 +342,7 @@ const AllCustomerTable = () => {
               </div>
             ) : (
 
-    // View Modal
+    
         <div className="modal fade show d-block" tabIndex="-1" role="dialog">
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content shadow-lg border-0 rounded">

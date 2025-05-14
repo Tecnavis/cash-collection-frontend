@@ -22,9 +22,9 @@ const CustomerTable = () => {
 
       // Button
       const handleDropdownToggle = (event, index) => {
-        event.stopPropagation(); // Prevent the event from propagating to the document
+        event.stopPropagation(); 
         if (index !== -1 && index !== -2) {
-          const adjustedIndex = indexOfFirstData + index; // Adjust index based on pagination
+          const adjustedIndex = indexOfFirstData + index; 
           setDataList((prevData) => {
             const updatedData = prevData.map((data, i) => ({
               ...data,
@@ -38,7 +38,7 @@ const CustomerTable = () => {
       useEffect(() => {
         const handleOutsideClick = (event) => {
           if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-            // Clicked outside the dropdown, close it
+            
             setDataList((prevData) =>
               prevData.map((data) => ({ ...data, showDropdown: false }))
             );
@@ -52,7 +52,7 @@ const CustomerTable = () => {
         };
       }, []);
       
-    // Pagination logic
+    
     const indexOfLastData = currentPage * dataPerPage;
     const indexOfFirstData = indexOfLastData - dataPerPage;
     const currentData = dataList.slice(indexOfFirstData, indexOfLastData);
@@ -61,7 +61,7 @@ const CustomerTable = () => {
       setCurrentPage(pageNumber);
     };
   
-    // Calculate total number of pages
+    
     const totalPages = Math.ceil(dataList.length / dataPerPage);
     const pageNumbers = [];
     for (let i = 1; i <= totalPages; i++) {
