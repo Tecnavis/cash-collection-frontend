@@ -12,6 +12,7 @@ import PaginationSection from "./PaginationSection";
 const AllCustomerTransactionTable = () => {
   const [customers, setCustomers] = useState([]);
   const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [schemes, setSchemes] = useState([]); // Add state for schemes
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedScheme, setSelectedScheme] = useState(null);
@@ -23,21 +24,35 @@ const AllCustomerTransactionTable = () => {
   const pdfRef = useRef(); 
 
   useEffect(() => {
-    fetchTransactions();
+    fetchData();
   }, []);
 
-  const fetchTransactions = async () => {
+  const fetchData = async () => {
     try {
-      const response = await axios.get(
-        `${BASE_URL}/cashcollection/customer-scheme-payments/`,
-        {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("access_token")}`,
-          },
-        }
-      );
+      // Fetch both customer transactions and schemes data
+      const [transactionsResponse, schemesResponse] = await Promise.all([
+        axios.get(
+          `${BASE_URL}/cashcollection/customer-scheme-payments/`,
+          {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("access_token")}`,
+            },
+          }
+        ),
+        axios.get(
+          `${BASE_URL}/cashcollection/schemes/`,
+          {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("access_token")}`,
+            },
+          }
+        )
+      ]);
 
-      const groupedCustomers = response.data.reduce((acc, item) => {
+      // Store schemes data
+      setSchemes(schemesResponse.data);
+
+      const groupedCustomers = transactionsResponse.data.reduce((acc, item) => {
         let customer = acc.find((c) => c.customer_details.id === item.customer_details.id);
 
         if (!customer) {
@@ -78,17 +93,16 @@ const AllCustomerTransactionTable = () => {
       setFilteredCustomers(groupedCustomers); 
       setTotalPages(Math.ceil(groupedCustomers.length / dataPerPage));
     } catch (error) {
-      console.error("Error fetching transactions:", error);
-      setError("Error fetching transactions");
+      console.error("Error fetching data:", error);
+      setError("Error fetching data");
     } finally {
       setLoading(false);
     }
   };
 
-  
+  // Extract customer number from name (e.g., "Customer 3" returns 3)
   const extractCustomerNumber = (customer) => {
     const fullName = `${customer.customer_details.first_name} ${customer.customer_details.last_name}`;
-    
     
     const regex = /(\d+)(?:\s*-|\s*$)/;
     const match = fullName.match(regex);
@@ -101,25 +115,32 @@ const AllCustomerTransactionTable = () => {
     return 1; 
   };
 
-  
-  const calculateSchemeTotal = (scheme, customer) => {
+  // Get scheme amount from the schemes data
+  const getSchemeAmount = (schemeName) => {
+    const scheme = schemes.find(s => s.name === schemeName);
+    return scheme ? parseFloat(scheme.total_amount) : 0;
+  };
+
+  // Calculate scheme total based on scheme amount and customer number
+  const calculateSchemeTotal = (schemeName, customer) => {
     const customerNumber = extractCustomerNumber(customer);
-    const baseAmount = 204000; 
+    const baseAmount = getSchemeAmount(schemeName);
     return customerNumber * baseAmount;
   };
 
   const handleShowModal = (scheme, customer) => {
-    
+    // Calculate the adjusted total using the scheme's actual base amount
     const customerMultiplier = extractCustomerNumber(customer);
-    const baseAmount = 204000;
+    const baseAmount = getSchemeAmount(scheme.scheme_name);
     const adjustedTotal = customerMultiplier * baseAmount;
     
-    
+    // Create an adjusted scheme object with the correct total amount
     const adjustedScheme = {
       ...scheme,
       original_total_amount: scheme.scheme_total_amount,
       scheme_total_amount: adjustedTotal,
-      multiplier: customerMultiplier
+      multiplier: customerMultiplier,
+      base_amount: baseAmount
     };
     
     setSelectedScheme(adjustedScheme);
@@ -174,7 +195,7 @@ const AllCustomerTransactionTable = () => {
     setCurrentPage(1);
   };
 
-  
+  // Format currency in Indian Rupees
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -183,10 +204,10 @@ const AllCustomerTransactionTable = () => {
     }).format(amount).replace('₹', '₹');
   };
 
-  
+  // Pagination handler
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   
-  
+  // Calculate current customers to display
   const indexOfLastCustomer = currentPage * dataPerPage;
   const indexOfFirstCustomer = indexOfLastCustomer - dataPerPage;
   const currentCustomers = filteredCustomers.slice(indexOfFirstCustomer, indexOfLastCustomer);
@@ -254,7 +275,7 @@ const AllCustomerTransactionTable = () => {
         </Table>
       </OverlayScrollbarsComponent>
 
-      
+      {/* Pagination */}
       <PaginationSection
         currentPage={currentPage}
         totalPages={totalPages}
@@ -262,7 +283,7 @@ const AllCustomerTransactionTable = () => {
         pageNumbers={Array.from({ length: totalPages }, (_, i) => i + 1)}
       />
 
-      
+      {/* Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Payment Receipt</Modal.Title>
@@ -282,9 +303,6 @@ const AllCustomerTransactionTable = () => {
                 <h5>{selectedScheme.scheme_name}</h5>
                 <p>
                   <strong>Total Amount:</strong> {formatCurrency(selectedScheme.scheme_total_amount)}
-                  {selectedScheme.multiplier > 1 && (
-                    <span className="text-muted"> (Base Amount: {formatCurrency(204000)} × {selectedScheme.multiplier})</span>
-                  )}
                 </p>
                 <p>
                   <strong>Total Paid:</strong> {formatCurrency(
@@ -345,7 +363,7 @@ const AllCustomerTransactionTable = () => {
         </Modal.Footer>
       </Modal>
 
-      
+      {/* Hidden PDF div for export */}
       <div
         ref={pdfRef}
         style={{
@@ -373,11 +391,7 @@ const AllCustomerTransactionTable = () => {
             <p>
               <strong>Shop:</strong> {selectedCustomer.customer_details.shop_name}
             </p>
-            {selectedScheme.multiplier > 1 && (
-              <p>
-                <strong>Customer Multiplier:</strong> {selectedScheme.multiplier}x
-              </p>
-            )}
+            
             <Table bordered size="sm">
               <thead>
                 <tr>

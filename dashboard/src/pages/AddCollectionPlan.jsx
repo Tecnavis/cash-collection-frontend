@@ -21,15 +21,16 @@ const AddCollectionPlan = () => {
   const [customerSchemes, setCustomerSchemes] = useState([]);
   const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [uniqueSchemes, setUniqueSchemes] = useState([]);
+  const [schemes, setSchemes] = useState([]); // All schemes with their base amounts
   const [selectedSchemeTotal, setSelectedSchemeTotal] = useState(0);
-  const [baseAmount, setBaseAmount] = useState(204000);
+  const [baseAmount, setBaseAmount] = useState(0);
   const [multiplier, setMultiplier] = useState(1);
   const [totalPaidAmount, setTotalPaidAmount] = useState(0);
   const [balanceAmount, setBalanceAmount] = useState(0);
   const [paymentHistory, setPaymentHistory] = useState([]);
 
   useEffect(() => {
-    fetchCustomerSchemes();
+    fetchData();
   }, []);
 
   // Update balance amount whenever relevant values change
@@ -39,32 +40,59 @@ const AddCollectionPlan = () => {
     setBalanceAmount(balance);
   }, [totalPaidAmount, selectedSchemeTotal, formData.amount]);
 
-  const fetchCustomerSchemes = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${BASE_URL}/cashcollection/customer-schemes/`, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("access_token")}`,
-        },
-      });
+      // Fetch both customer schemes and all schemes data
+      const [customerSchemesResponse, schemesResponse] = await Promise.all([
+        axios.get(`${BASE_URL}/cashcollection/customer-schemes/`, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("access_token")}`,
+          },
+        }),
+        axios.get(`${BASE_URL}/cashcollection/schemes/`, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("access_token")}`,
+          },
+        })
+      ]);
 
-      setCustomerSchemes(response.data);
+      setCustomerSchemes(customerSchemesResponse.data);
+      setSchemes(schemesResponse.data);
 
       // Extract unique schemes
-      const schemes = Array.from(new Set(response.data.map((scheme) => scheme.scheme))).map(
-        (schemeId) => response.data.find((s) => s.scheme === schemeId)
-      );
-      setUniqueSchemes(schemes);
+      const uniqueSchemesList = Array.from(
+        new Set(customerSchemesResponse.data.map((scheme) => scheme.scheme))
+      ).map((schemeId) => customerSchemesResponse.data.find((s) => s.scheme === schemeId));
+      
+      setUniqueSchemes(uniqueSchemesList);
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching schemes:", error);
+      console.error("Error fetching data:", error);
       setMessage("Failed to load customer schemes. Please refresh the page.");
       setMessageType("error");
       setLoading(false);
     }
   };
 
-  // Fetch payment history for a specific customer and scheme using the CustomerSchemePaymentSerializer
+  // Extract customer number from name (e.g., "vin 2" returns 2)
+  const extractCustomerNumber = (customerName) => {
+    const nameMatch = customerName.match(/(\w+)\s+(\d+)/);
+    
+    if (nameMatch && nameMatch[2]) {
+      return parseInt(nameMatch[2], 10);
+    }
+    
+    return 1; // Default multiplier if no number found
+  };
+
+  // Get scheme base amount from schemes data
+  const getSchemeBaseAmount = (schemeId) => {
+    const scheme = schemes.find(s => s.id === Number(schemeId));
+    return scheme ? parseFloat(scheme.total_amount) : 0;
+  };
+
+  // Fetch payment history for a specific customer and scheme 
   const fetchPaymentHistory = async (customerId, schemeId) => {
     try {
       setLoading(true);
@@ -122,23 +150,18 @@ const AddCollectionPlan = () => {
     }),
   };
   
-  // Extract the multiplier from customer name and update the total scheme amount
+  // Handle customer selection and update the total scheme amount
   const handleCustomerSelect = async (selectedOption) => {
     if (selectedOption) {
       const customerId = selectedOption.value;
       const customerName = selectedOption.label;
       
-      // Extract the number after the name (e.g., "vin 2" -> 2)
-      const nameMatch = customerName.match(/(\w+)\s+(\d+)/);
+      // Extract the customer number from the name
+      const extractedMultiplier = extractCustomerNumber(customerName);
+      setMultiplier(extractedMultiplier);
       
-      if (nameMatch && nameMatch[2]) {
-        const extractedMultiplier = parseInt(nameMatch[2], 10);
-        setMultiplier(extractedMultiplier || 1);
-        setSelectedSchemeTotal(baseAmount * extractedMultiplier);
-      } else {
-        setMultiplier(1);
-        setSelectedSchemeTotal(baseAmount);
-      }
+      // Calculate total scheme amount based on base amount and multiplier
+      setSelectedSchemeTotal(baseAmount * extractedMultiplier);
       
       setFormData({ ...formData, customer: customerId });
       
@@ -159,14 +182,16 @@ const AddCollectionPlan = () => {
     const { name, value } = e.target;
 
     if (name === "scheme") {
-      const selectedScheme = uniqueSchemes.find((s) => s.scheme === Number(value));
+      // Get scheme base amount from the schemes data
+      const schemeBaseAmount = getSchemeBaseAmount(value);
+      setBaseAmount(schemeBaseAmount);
+      
+      // Reset customer selection
       setFormData({ ...formData, scheme: value, customer: "" });
       setFilteredCustomers(customerSchemes.filter((cs) => cs.scheme === Number(value)));
       
-      // Reset the scheme total to the base amount initially
-      const schemeAmount = selectedScheme ? parseFloat(selectedScheme.scheme_total_amount) : 204000;
-      setBaseAmount(schemeAmount);
-      setSelectedSchemeTotal(schemeAmount);
+      // Reset scheme total to base amount initially
+      setSelectedSchemeTotal(schemeBaseAmount);
       setMultiplier(1);
       setTotalPaidAmount(0);
       setPaymentHistory([]);

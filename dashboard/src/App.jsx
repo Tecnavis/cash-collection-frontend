@@ -43,6 +43,8 @@ import AllCollectionsProgress from "./pages/AllCollectionsProgress"
 import AllCollectionCustomer from "./pages/AllCollectionCustomer"
 import AllTransactions from "./pages/AllTransactions"
 import AllCustomerTransaction from "./pages/AllCustomerTransactions"
+import DailyCollectionMainContent from "./pages/DailyCollection"
+import CollectionForm from "./pages/AddDailyCollection"
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!Cookies.get('access_token'));
 
@@ -103,9 +105,14 @@ function App() {
             <Route path="/allCustomer" element={<AllCustomer />} />
             <Route path="/addPartner" element={<AddPartner />} />
              {/*customer  */}
+            
             <Route path="/supplier" element={<Company />} />
             <Route path="/allCollectionCustomer" element={< AllCollectionCustomer />} />
 
+            {/*Daily Collection*/}
+            <Route path="/dailyCollection" element={<DailyCollectionMainContent />} />
+            <Route path="/addDailyCollection" element={< CollectionForm />} /> 
+            
             {/*main admin  */}
             <Route path="/addEmployee" element={<AddEmployee />} /> 
             <Route path="/allEmployee" element={<AllEmployee />} />

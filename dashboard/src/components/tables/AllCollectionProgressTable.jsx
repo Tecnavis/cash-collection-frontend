@@ -7,25 +7,36 @@ import AllCollectionProgressHeader from "../header/AllCollecionProgressHeader";
 
 const AllCollectionProgressTable = () => {
   const [customerSchemes, setCustomerSchemes] = useState([]);
+  const [schemes, setSchemes] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const BASE_AMOUNT = 204000;
 
   useEffect(() => {
-    fetchCustomerSchemes();
+    fetchData();
   }, []);
 
-  const fetchCustomerSchemes = async () => {
+  const fetchData = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/cashcollection/customer-schemes/`, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("access_token")}`,
-        },
-      });
-      setCustomerSchemes(response.data);
-      setFilteredData(response.data);
+      // Fetch both customer schemes and all schemes data
+      const [customerSchemesResponse, schemesResponse] = await Promise.all([
+        axios.get(`${BASE_URL}/cashcollection/customer-schemes/`, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("access_token")}`,
+          },
+        }),
+        axios.get(`${BASE_URL}/cashcollection/schemes/`, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("access_token")}`,
+          },
+        })
+      ]);
+      
+      setCustomerSchemes(customerSchemesResponse.data);
+      setFilteredData(customerSchemesResponse.data);
+      setSchemes(schemesResponse.data);
     } catch (error) {
+      console.error("Error fetching data:", error);
       setError("Error fetching data.");
     } finally {
       setLoading(false);
@@ -46,16 +57,23 @@ const AllCollectionProgressTable = () => {
     }
   };
 
-
+  // Extract customer number from name (e.g., "Customer 3" returns 3)
   const extractCustomerNumber = (name) => {
     const match = name.match(/\s*(\d+)$/);
     return match ? parseInt(match[1]) : 1;
   };
 
+  const getSchemeAmount = (schemeName) => {
+    // Find the scheme by name and return its total amount
+    const scheme = schemes.find(s => s.name === schemeName);
+    return scheme ? parseFloat(scheme.total_amount) : 0;
+  };
 
-  const calculateTotalAmount = (customerName) => {
+  // Calculate total amount based on scheme amount and customer number
+  const calculateTotalAmount = (customerName, schemeName) => {
     const customerNumber = extractCustomerNumber(customerName);
-    return BASE_AMOUNT * customerNumber;
+    const baseSchemeAmount = getSchemeAmount(schemeName);
+    return baseSchemeAmount * customerNumber;
   };
 
   const calculateTotalPerScheme = () => {
@@ -72,21 +90,20 @@ const AllCollectionProgressTable = () => {
     return totals;
   };
 
-
   const calculateCustomizedProgress = (entry) => {
-    const customerName = `${entry.customer_details.first_name} ${entry.customer_details.last_name}`;
-    const customerNumber = extractCustomerNumber(customerName);
-
+    const name = `${entry.customer_details.first_name} ${entry.customer_details.last_name}`;
+    const customerNumber = extractCustomerNumber(name);
+    const installmentAmount = parseFloat(entry.installment_amount) || 1;
+    
+    // Base number of installments per customer number
     const baseTotal = 51;
     const totalInstallments = baseTotal * customerNumber;
-
-
+    
     const paid = Number(entry.installments_paid) || 0;
-    const totalPossibleInstallments = totalInstallments;
 
     return {
-      paid: Math.min(paid, totalPossibleInstallments),
-      totalInstallments: totalPossibleInstallments
+      paid: Math.min(paid, totalInstallments),
+      totalInstallments: totalInstallments
     };
   };
 
@@ -98,7 +115,6 @@ const AllCollectionProgressTable = () => {
   return (
     <div className="panel">
       <AllCollectionProgressHeader onSearch={handleSearch} />
-
 
       <h5 className="mt-4">Total Paid Per Scheme</h5>
       <Table bordered>
@@ -132,7 +148,7 @@ const AllCollectionProgressTable = () => {
           {filteredData.map((entry) => {
             const name = `${entry.customer_details.first_name} ${entry.customer_details.last_name}`;
             const progress = calculateCustomizedProgress(entry);
-            const totalAmount = calculateTotalAmount(name);
+            const totalAmount = calculateTotalAmount(name, entry.scheme_name);
 
             return (
               <tr key={entry.id}>

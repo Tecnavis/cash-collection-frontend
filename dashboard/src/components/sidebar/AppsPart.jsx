@@ -54,6 +54,12 @@ const AppsPart = () => {
           </NavLink>
         </li>
 
+        <li className="sidebar-dropdown-item">
+          <NavLink to="/addDailyCollection" className="sidebar-link">
+            <i className="fas fa-wallet"></i> Daily collection
+          </NavLink>
+        </li>
+
         {/* HRM */}
         <li className="sidebar-dropdown-item">
           <NavLink to="/allCustomer" className="sidebar-link">

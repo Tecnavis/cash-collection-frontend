@@ -9,6 +9,7 @@ import AllCollectionHeader from "../header/AllCollectionHeader";
 
 const AllCollectionTable = () => {
   const [transactions, setTransactions] = useState([]);
+  const [schemes, setSchemes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,69 +18,84 @@ const AllCollectionTable = () => {
   const [dataList, setDataList] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [originalTransaction, setOriginalTransaction] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef(null);
-  const BASE_AMOUNT = 204000; 
 
   useEffect(() => {
-    fetchTransactions();
+    fetchData();
   }, [currentPage]);
 
-  
-  const extractMultiplierFromName = (customerName) => {
-    
-    const match = customerName.match(/\d+/);
-    if (match) {
-      return parseInt(match[0]);
-    }
-    return 1; 
-  };
-
-  
-  const calculateSchemeTotalAmount = (customerName) => {
-    const multiplier = extractMultiplierFromName(customerName);
-    return BASE_AMOUNT * multiplier;
-  };
-
-  const fetchTransactions = async () => {
+  const fetchData = async () => {
     try {
       const token = Cookies.get("access_token");
-      const response = await axios.get(`${BASE_URL}/cashcollection/cashcollections/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const formattedTransactions = response.data.map((transaction, index) => {
-        
-        const customerFullName = `${transaction.customer_details.shop_name} - ${transaction.customer_details.first_name} ${transaction.customer_details.last_name}`;
-        
-        
-        const calculatedAmount = calculateSchemeTotalAmount(customerFullName);
-        
-        return {
-          ...transaction,
-          serialNumber: index + 1,
-          showDropdown: false,
-          
-          original_scheme_total_amount: transaction.scheme_total_amount,
-          scheme_total_amount: calculatedAmount,
-          
-          multiplier: extractMultiplierFromName(customerFullName)
-        };
-      });
-
-      setTransactions(formattedTransactions);
-      setDataList(formattedTransactions);
       
+      // Fetch both transactions and schemes data
+      const [transactionsResponse, schemesResponse] = await Promise.all([
+        axios.get(`${BASE_URL}/cashcollection/cashcollections/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`${BASE_URL}/cashcollection/schemes/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      ]);
+
+      // Store the schemes data
+      setSchemes(schemesResponse.data);
       
-      const calculatedTotalPages = Math.ceil(formattedTransactions.length / dataPerPage);
-      setTotalPages(calculatedTotalPages || 1);
+      // Process transactions with the scheme data
+      processTransactions(transactionsResponse.data, schemesResponse.data);
     } catch (error) {
-      console.error("Error fetching transactions:", error);
-      setError("Error fetching transactions");
+      console.error("Error fetching data:", error);
+      setError("Error fetching data");
     } finally {
       setLoading(false);
     }
+  };
+  
+  // Extract customer number from name (e.g., "Customer 3" returns 3)
+  const extractCustomerNumber = (name) => {
+    const match = name.match(/\d+$/);
+    if (match) {
+      return parseInt(match[0]);
+    }
+    return 1; // Default multiplier if no number found
+  };
+
+  // Get the scheme total amount from schemes data
+  const getSchemeAmount = (schemeName, schemesData) => {
+    const scheme = schemesData.find(s => s.name === schemeName);
+    return scheme ? parseFloat(scheme.total_amount) : 0;
+  };
+
+  const processTransactions = (data, schemesData) => {
+    const formattedTransactions = data.map((transaction, index) => {
+      const customerFullName = `${transaction.customer_details.shop_name} - ${transaction.customer_details.first_name} ${transaction.customer_details.last_name}`;
+      
+      // Get customer multiplier
+      const customerNumber = extractCustomerNumber(customerFullName);
+      
+      // Get base scheme amount
+      const baseSchemeAmount = getSchemeAmount(transaction.scheme_name, schemesData);
+      
+      // Calculate total scheme amount
+      const calculatedSchemeAmount = baseSchemeAmount * customerNumber;
+      
+      return {
+        ...transaction,
+        serialNumber: index + 1,
+        showDropdown: false,
+        base_scheme_amount: baseSchemeAmount,
+        scheme_total_amount: calculatedSchemeAmount,
+        customerNumber: customerNumber
+      };
+    });
+
+    setTransactions(formattedTransactions);
+    setDataList(formattedTransactions);
+    
+    // Calculate total pages
+    const calculatedTotalPages = Math.ceil(formattedTransactions.length / dataPerPage);
+    setTotalPages(calculatedTotalPages || 1);
   };
 
   const handleSearch = (query) => {
@@ -107,7 +123,6 @@ const AllCollectionTable = () => {
     setShowModal(true);
   };
 
-  
   const getStartingIndex = () => {
     return (currentPage - 1) * dataPerPage;
   };
@@ -145,10 +160,9 @@ const AllCollectionTable = () => {
                     <td>{new Date(transaction.created_at).toLocaleString()}</td>
                     <td>
                       {customerFullName}
-                      {/* {transaction.multiplier > 1 && <span className="text-primary ms-1">(×{transaction.multiplier})</span>} */}
                     </td>
                     <td>{transaction.scheme_name}</td>
-                    <td>Rs {transaction.scheme_total_amount.toLocaleString()}</td>
+                    <td>Rs {transaction.scheme_total_amount ? transaction.scheme_total_amount.toLocaleString() : "0"}</td>
                     <td>{transaction.start_date}</td>
                     <td>{transaction.end_date}</td>
                     <td>
@@ -183,9 +197,8 @@ const AllCollectionTable = () => {
                 <i className="fa-solid fa-file-invoice fa-4x text-primary mb-3"></i>
                 <p><strong>Customer:</strong> {selectedTransaction.customer_details.shop_name} - {selectedTransaction.customer_details.first_name} {selectedTransaction.customer_details.last_name}</p>
                 <p><strong>Scheme Name:</strong> {selectedTransaction.scheme_name || "N/A"}</p>
-                {/* <p><strong>Base Amount:</strong> Rs {BASE_AMOUNT.toLocaleString()}</p> */}
-                {/* <p><strong>Multiplier:</strong> {selectedTransaction.multiplier}</p> */}
-                <p><strong>Total Amount:</strong> Rs {selectedTransaction.scheme_total_amount.toLocaleString()}</p>
+                <p><strong>Base Amount:</strong> Rs {selectedTransaction.base_scheme_amount?.toLocaleString() || "0"}</p>
+                <p><strong>Total Amount:</strong> Rs {selectedTransaction.scheme_total_amount?.toLocaleString() || "0"}</p>
                 <p><strong>Start Date:</strong> {selectedTransaction.start_date || "N/A"}</p>
                 <p><strong>End Date:</strong> {selectedTransaction.end_date || "N/A"}</p>
                 <p><strong>Joined Date:</strong> {new Date(selectedTransaction.created_at).toLocaleString()}</p>
