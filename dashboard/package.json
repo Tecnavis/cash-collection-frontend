@@ -4,12 +4,12 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
+ "scripts": {
   "dev": "vite",
   "build": "vite build",
   "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
   "preview": "vite preview",
-  "start": "vite preview --port $PORT"
+  "start": "vite preview --host --port $PORT"
 },
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^38.0.1",
