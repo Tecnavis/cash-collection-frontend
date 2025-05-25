@@ -32,16 +32,16 @@ const DailyCollectionTable = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-
+      // Calculate running total for each entry
       let total = 0;
       const formattedCollections = response.data.map((entry, index) => {
-
+        // Update the running total based on credit/debit
         if (entry.type === "credit") {
           total += parseFloat(entry.amount);
         } else {
           total -= parseFloat(entry.amount);
         }
-
+        
         return {
           ...entry,
           serialNo: index + 1,
@@ -52,8 +52,8 @@ const DailyCollectionTable = () => {
       setCollections(formattedCollections);
       setDataList(formattedCollections);
       setRunningTotal(total);
-
-
+      
+      // Assuming pagination info comes from the backend
       if (response.data.length > 0) {
         setTotalPages(Math.ceil(response.data.length / dataPerPage));
       }
@@ -96,8 +96,8 @@ const DailyCollectionTable = () => {
         await axios.delete(`${BASE_URL}/cashcollection/collections/${id}/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
-
+        
+        // Refresh collection list after deletion
         fetchCollections();
       } catch (error) {
         console.error("Error deleting collection entry:", error);
@@ -108,7 +108,7 @@ const DailyCollectionTable = () => {
 
   const handleUpdateEntry = async () => {
     if (!selectedEntry) return;
-
+    
     try {
       const token = Cookies.get("access_token");
       await axios.patch(
@@ -121,7 +121,7 @@ const DailyCollectionTable = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
+      
       setShowModal(false);
       fetchCollections();
     } catch (error) {
@@ -134,7 +134,7 @@ const DailyCollectionTable = () => {
     navigate("/addDailyCollection");
   };
 
-
+  // Get current data based on pagination
   const currentData = dataList.slice(
     (currentPage - 1) * dataPerPage,
     currentPage * dataPerPage
@@ -153,7 +153,7 @@ const DailyCollectionTable = () => {
           Add New Collection
         </button>
       </div>
-
+      
       <OverlayScrollbarsComponent>
         <Table striped bordered hover>
           <thead>

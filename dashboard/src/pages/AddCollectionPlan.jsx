@@ -13,7 +13,7 @@ const AddCollectionPlan = () => {
     amount: "",
     collection_date: new Date().toISOString().split("T")[0],
     notes: "",
-    payment_method: "cash", // Default payment method
+    payment_method: "cash", 
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -21,29 +21,25 @@ const AddCollectionPlan = () => {
   const [customerSchemes, setCustomerSchemes] = useState([]);
   const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [uniqueSchemes, setUniqueSchemes] = useState([]);
-  const [schemes, setSchemes] = useState([]); // All schemes with their base amounts
-  const [selectedSchemeTotal, setSelectedSchemeTotal] = useState(0);
-  const [baseAmount, setBaseAmount] = useState(0);
-  const [multiplier, setMultiplier] = useState(1);
+  const [schemes, setSchemes] = useState([]); 
   const [totalPaidAmount, setTotalPaidAmount] = useState(0);
-  const [balanceAmount, setBalanceAmount] = useState(0);
+  const [currentAmountInput, setCurrentAmountInput] = useState(0);
   const [paymentHistory, setPaymentHistory] = useState([]);
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  // Update balance amount whenever relevant values change
+  
   useEffect(() => {
     const currentAmount = formData.amount ? parseFloat(formData.amount) || 0 : 0;
-    const balance = selectedSchemeTotal - totalPaidAmount - currentAmount;
-    setBalanceAmount(balance);
-  }, [totalPaidAmount, selectedSchemeTotal, formData.amount]);
+    setCurrentAmountInput(currentAmount);
+  }, [formData.amount]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      // Fetch both customer schemes and all schemes data
+      
       const [customerSchemesResponse, schemesResponse] = await Promise.all([
         axios.get(`${BASE_URL}/cashcollection/customer-schemes/`, {
           headers: {
@@ -60,7 +56,7 @@ const AddCollectionPlan = () => {
       setCustomerSchemes(customerSchemesResponse.data);
       setSchemes(schemesResponse.data);
 
-      // Extract unique schemes
+      
       const uniqueSchemesList = Array.from(
         new Set(customerSchemesResponse.data.map((scheme) => scheme.scheme))
       ).map((schemeId) => customerSchemesResponse.data.find((s) => s.scheme === schemeId));
@@ -75,35 +71,18 @@ const AddCollectionPlan = () => {
     }
   };
 
-  // Extract customer number from name (e.g., "vin 2" returns 2)
-  const extractCustomerNumber = (customerName) => {
-    const nameMatch = customerName.match(/(\w+)\s+(\d+)/);
-    
-    if (nameMatch && nameMatch[2]) {
-      return parseInt(nameMatch[2], 10);
-    }
-    
-    return 1; // Default multiplier if no number found
-  };
-
-  // Get scheme base amount from schemes data
-  const getSchemeBaseAmount = (schemeId) => {
-    const scheme = schemes.find(s => s.id === Number(schemeId));
-    return scheme ? parseFloat(scheme.total_amount) : 0;
-  };
-
-  // Fetch payment history for a specific customer and scheme 
+  
   const fetchPaymentHistory = async (customerId, schemeId) => {
     try {
       setLoading(true);
-      // Get all scheme payments through the customer_scheme_payment_list endpoint
+      
       const response = await axios.get(`${BASE_URL}/cashcollection/customer-scheme-payments/`, {
         headers: {
           Authorization: `Bearer ${Cookies.get("access_token")}`,
         },
       });
       
-      // Find the payments for the specific customer and scheme
+      
       const customerPayments = response.data.filter(payment => {
         return payment.customer_details && 
                payment.customer_details.id === parseInt(customerId) && 
@@ -114,14 +93,14 @@ const AddCollectionPlan = () => {
       if (customerPayments.length > 0) {
         const paymentHistoryData = customerPayments[0].payment_history || [];
         
-        // Sort payment history by date (most recent first)
+        
         const sortedPaymentHistory = [...paymentHistoryData].sort((a, b) => 
           new Date(b.date) - new Date(a.date)
         );
         
         setPaymentHistory(sortedPaymentHistory);
         
-        // Calculate total paid amount from payment history
+        
         const totalPaid = paymentHistoryData.reduce(
           (sum, payment) => sum + parseFloat(payment.amount), 
           0
@@ -129,7 +108,7 @@ const AddCollectionPlan = () => {
         
         setTotalPaidAmount(totalPaid);
       } else {
-        // No payment history found
+        
         setPaymentHistory([]);
         setTotalPaidAmount(0);
       }
@@ -150,29 +129,19 @@ const AddCollectionPlan = () => {
     }),
   };
   
-  // Handle customer selection and update the total scheme amount
+  
   const handleCustomerSelect = async (selectedOption) => {
     if (selectedOption) {
       const customerId = selectedOption.value;
-      const customerName = selectedOption.label;
-      
-      // Extract the customer number from the name
-      const extractedMultiplier = extractCustomerNumber(customerName);
-      setMultiplier(extractedMultiplier);
-      
-      // Calculate total scheme amount based on base amount and multiplier
-      setSelectedSchemeTotal(baseAmount * extractedMultiplier);
       
       setFormData({ ...formData, customer: customerId });
       
-      // Fetch payment history for this customer and scheme
+      
       if (formData.scheme) {
         await fetchPaymentHistory(customerId, formData.scheme);
       }
     } else {
       setFormData({ ...formData, customer: "" });
-      setMultiplier(1);
-      setSelectedSchemeTotal(baseAmount);
       setTotalPaidAmount(0);
       setPaymentHistory([]);
     }
@@ -182,32 +151,13 @@ const AddCollectionPlan = () => {
     const { name, value } = e.target;
 
     if (name === "scheme") {
-      // Get scheme base amount from the schemes data
-      const schemeBaseAmount = getSchemeBaseAmount(value);
-      setBaseAmount(schemeBaseAmount);
       
-      // Reset customer selection
       setFormData({ ...formData, scheme: value, customer: "" });
       setFilteredCustomers(customerSchemes.filter((cs) => cs.scheme === Number(value)));
       
-      // Reset scheme total to base amount initially
-      setSelectedSchemeTotal(schemeBaseAmount);
-      setMultiplier(1);
+      
       setTotalPaidAmount(0);
       setPaymentHistory([]);
-    } else if (name === "amount") {
-      // Calculate current remaining balance
-      const remainingBalance = selectedSchemeTotal - totalPaidAmount;
-      const amountValue = parseFloat(value);
-      
-      if (amountValue > remainingBalance) {
-        setMessage(`Amount cannot exceed remaining balance of ${remainingBalance.toFixed(2)}`);
-        setMessageType("error");
-      } else {
-        setMessage("");
-      }
-      
-      setFormData({ ...formData, [name]: value });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -222,13 +172,6 @@ const AddCollectionPlan = () => {
 
     if (isNaN(formData.amount) || Number(formData.amount) <= 0) {
       setMessage("Amount must be a valid number greater than 0.");
-      setMessageType("error");
-      return false;
-    }
-
-    const remainingBalance = selectedSchemeTotal - totalPaidAmount;
-    if (Number(formData.amount) > remainingBalance) {
-      setMessage(`Amount cannot exceed remaining balance of ${remainingBalance.toFixed(2)}`);
       setMessageType("error");
       return false;
     }
@@ -267,10 +210,10 @@ const AddCollectionPlan = () => {
       setMessage("Collection entry added successfully!");
       setMessageType("success");
       
-      // Temporarily store the submitted amount for current display
+      
       const submittedAmount = parseFloat(formData.amount);
       
-      // Add the new payment to the payment history (optimistically)
+      
       const newPayment = {
         amount: submittedAmount,
         payment_method: formData.payment_method,
@@ -279,10 +222,10 @@ const AddCollectionPlan = () => {
       
       setPaymentHistory([newPayment, ...paymentHistory]);
       
-      // Update UI with new total paid amount
+      
       setTotalPaidAmount(prevTotal => prevTotal + submittedAmount);
       
-      // Reset the form but maintain customer and scheme selection
+      
       setFormData({
         customer: formData.customer,
         scheme: formData.scheme, 
@@ -292,7 +235,7 @@ const AddCollectionPlan = () => {
         notes: "",
       });
       
-      // Refresh payment history from the server to get the official record
+      
       if (formData.customer && formData.scheme) {
         await fetchPaymentHistory(formData.customer, formData.scheme);
       }
@@ -301,7 +244,7 @@ const AddCollectionPlan = () => {
     } catch (error) {
       console.error("API Error:", error.response?.data);
     
-      // Show specific validation message if available
+      
       const backendErrors = error.response?.data;
       if (backendErrors?.non_field_errors && Array.isArray(backendErrors.non_field_errors)) {
         setMessage(backendErrors.non_field_errors[0]);
@@ -377,41 +320,19 @@ const AddCollectionPlan = () => {
                     {!formData.scheme && <small className="text-muted">Select a scheme first</small>}
                   </div>
 
-                  {formData.scheme && (
-                    <div className="col-lg-4 col-sm-6">
-                      <label className="form-label">Total Scheme Amount (Base: {baseAmount.toFixed(2)} × {multiplier})</label>
-                      <input
-                        type="text"
-                        className="form-control form-control-sm"
-                        value={selectedSchemeTotal.toFixed(2)}
-                        readOnly
-                      />
-                    </div>
-                  )}
-
                   {formData.customer && formData.scheme && (
                     <div className="col-lg-4 col-sm-6">
                       <label className="form-label">Total Paid Amount</label>
                       <input
                         type="text"
                         className="form-control form-control-sm"
-                        value={totalPaidAmount.toFixed(2)}
+                        value={(totalPaidAmount + currentAmountInput).toFixed(2)}
                         readOnly
+                        style={{ backgroundColor: '#e9ecef', fontWeight: 'bold' }}
                       />
-                      <small className="text-muted">Already collected payments</small>
-                    </div>
-                  )}
-
-                  {formData.customer && formData.scheme && (
-                    <div className="col-lg-4 col-sm-6">
-                      <label className="form-label">Balance Amount (After Current Payment)</label>
-                      <input
-                        type="text"
-                        className="form-control form-control-sm"
-                        value={balanceAmount.toFixed(2)}
-                        readOnly
-                      />
-                      <small className="text-muted">Remaining balance after current payment</small>
+                      <small className="text-success">
+                        Previous: {totalPaidAmount.toFixed(2)} + Current: {currentAmountInput.toFixed(2)}
+                      </small>
                     </div>
                   )}
 
@@ -427,11 +348,6 @@ const AddCollectionPlan = () => {
                       required
                       disabled={loading || !formData.customer}
                     />
-                    {formData.customer && formData.scheme && (
-                      <small className="text-muted">
-                        Max amount: {(selectedSchemeTotal - totalPaidAmount).toFixed(2)}
-                      </small>
-                    )}
                   </div>
                   
                   <div className="col-lg-4 col-sm-6">
@@ -497,12 +413,18 @@ const AddCollectionPlan = () => {
                             </tr>
                           ))}
                           <tr className="table-info">
-                            <td colSpan="1"><strong>Total Paid</strong></td>
+                            <td colSpan="1"><strong>Total Paid (Previous)</strong></td>
                             <td colSpan="2"><strong>{totalPaidAmount.toFixed(2)}</strong></td>
                           </tr>
-                          <tr className="table-light">
-                            <td colSpan="1"><strong>Remaining Balance</strong></td>
-                            <td colSpan="2"><strong>{(selectedSchemeTotal - totalPaidAmount).toFixed(2)}</strong></td>
+                          {currentAmountInput > 0 && (
+                            <tr className="table-warning">
+                              <td colSpan="1"><strong>Current Entry</strong></td>
+                              <td colSpan="2"><strong>{currentAmountInput.toFixed(2)}</strong></td>
+                            </tr>
+                          )}
+                          <tr className="table-success">
+                            <td colSpan="1"><strong>New Total</strong></td>
+                            <td colSpan="2"><strong>{(totalPaidAmount + currentAmountInput).toFixed(2)}</strong></td>
                           </tr>
                         </tbody>
                       </table>

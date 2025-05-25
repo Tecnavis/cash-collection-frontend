@@ -8,8 +8,8 @@ import { useNavigate } from "react-router-dom";
 const CollectionForm = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    type: "credit", 
-    date: new Date().toISOString().split('T')[0], 
+    type: "credit", // Default to credit
+    date: new Date().toISOString().split('T')[0], // Default to today
     amount: "",
     narration: "",
   });
@@ -67,7 +67,7 @@ const CollectionForm = () => {
 
       setTimeout(() => {
         setMessage("");
-        
+        // Navigate to the collection list page
         navigate("/dailyCollection");
       }, 2000);
     } catch (error) {
