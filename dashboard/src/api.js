@@ -1,10 +1,9 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
-
-export const BASE_URL = 
-    import.meta.env.VITE_API_BASE_URL || "https://paycollection.onrender.com/api/v1";
-    // import.meta.env.VITE_API_BASE_URL || " http://127.0.0.1:8000/api/v1";
+export const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "http://127.0.0.1:8000/api/v1";
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -27,37 +26,40 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
       const refreshToken = Cookies.get("refresh_token");
       if (!refreshToken) {
-        console.log("No refresh token found, logging out...");
         handleLogout();
         return Promise.reject(error);
       }
+
       try {
-        const refreshResponse = await axios.post(`${BASE_URL}/token/users/refresh/`, {
-          refresh: refreshToken,
-        });
+        const refreshResponse = await axios.post(
+          `${BASE_URL}/users/token/refresh/`,
+          { refresh: refreshToken }
+        );
 
         const newAccessToken = refreshResponse.data.access;
+
         Cookies.set("access_token", newAccessToken, {
           expires: 1,
-          secure: window.location.protocol === "https:", // Use secure cookies only in HTTPS
+          secure: window.location.protocol === "https:",
           sameSite: "Strict",
         });
 
-        const originalRequest = { ...error.config };
+        const originalRequest = error.config;
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        console.log("Token refresh failed, logging out...");
         handleLogout();
         return Promise.reject(refreshError);
       }
     }
+
     return Promise.reject(error);
   }
 );
