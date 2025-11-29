@@ -1,137 +1,100 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Footer from '../footer/Footer';
-import { Link } from 'react-router-dom';
-import Cookies from 'js-cookie';
-import { BASE_URL } from "../../api";
+import React, { useState } from "react";
+import Cookies from "js-cookie";
+import api, { BASE_URL } from "../../api";
 
 const LoginContent2 = () => {
-  
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
-
-  // Handle input change
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  // Toggle password visibility
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
-    setError('');
 
     try {
-        const response = await fetch(`${BASE_URL}/users/login/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-        });
-        const data = await response.json();
+      // IMPORTANT: this URL + payload matches the Django backend
+      const response = await api.post("/users/login/", {
+        email,        // backend expects "email"
+        password,     // and "password"
+      });
 
-        if (response.ok) {
-            // Store tokens and role in cookies
-            Cookies.set('access_token', data.access_token, { expires: 1 });
-            Cookies.set('refresh_token', data.refresh_token, { expires: 7 });
-            Cookies.set('user_role', data.role.toUpperCase(), { expires: 1 });
-            Cookies.set('user_id', data.user_id, { expires: 1 });
+      const data = response.data;
 
-            // Trigger authentication event
-            window.dispatchEvent(new Event('auth-change'));
+      // Save tokens from backend into cookies (names must match api.js)
+      Cookies.set("access_token", data.access_token, {
+        expires: 1,
+        secure: window.location.protocol === "https:",
+        sameSite: "Strict",
+      });
 
-            // Determine where to navigate based on user role
-            let redirectPath = '/dashboard';  // Default redirect
+      Cookies.set("refresh_token", data.refresh_token, {
+        expires: 7,
+        secure: window.location.protocol === "https:",
+        sameSite: "Strict",
+      });
 
-            if (data.role.toUpperCase() === 'ADMIN') {
-                redirectPath = '/dash';
-            } else if (data.role.toUpperCase() === 'SUOER_ADMIN') {
-                redirectPath = '/dash';
-            } else if (data.role.toUpperCase() === 'STAFF') {
-                redirectPath = '/hrmDashboard';
-            }
-            else if (data.role.toUpperCase() === 'CUSTOMER') {
-                redirectPath = '/customerDashboard';  
-            }
-
-            // Small delay to ensure cookies are properly set before navigation
-            setTimeout(() => {
-                navigate(redirectPath);
-            }, 100);
-        } else {
-            setError(data.detail || 'Invalid login credentials');
-        }
+      // Redirect after successful login
+      window.location.href = "/"; // or "/dashboard" if that's your home page
     } catch (err) {
-        setError('Something went wrong. Please try again.');
-        console.error("Login error:", err);
+      console.error("Login error:", err);
+
+      // Try to show backend error if available
+      if (err.response && err.response.data) {
+        const data = err.response.data;
+        if (data.detail) {
+          setError(data.detail);
+        } else if (typeof data === "string") {
+          setError(data);
+        } else {
+          setError("Invalid email or password.");
+        }
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="main-content login-panel login-panel-2">
-      <h3 className="panel-title">Login</h3>
-      <div className="login-body login-body-2">
-        <div className="top d-flex justify-content-between align-items-center">
-          <div className="logo">
-            {/* <img src="assets/images/neo1.png" alt="Logo" /> */}
-            <img src="assets/images/neo1.png" alt="Logo" className="img-fluid" style={{ maxWidth: '100px' }} />
+    <div className="login-wrapper">
+      <form onSubmit={handleSubmit} className="login-form">
+        {/* Your existing layout / styles can stay the same – just keep the inputs wired to state */}
+
+        <div className="form-group">
+          <input
+            type="email"
+            className="form-control"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <input
+            type="password"
+            className="form-control"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+
+        {error && (
+          <div style={{ color: "red", marginBottom: "8px", fontSize: "14px" }}>
+            {error}
           </div>
-          <Link to="/"><i className="fa-duotone fa-house-chimney"></i></Link>
-        </div>
-        <div className="bottom">
-          <form onSubmit={handleSubmit}>
-            <div className="input-group mb-30">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Email address"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-              <span className="input-group-text"><i className="fa-regular fa-user"></i></span>
-            </div>
-            <div className="input-group mb-20">
-              <input
-                type={showPassword ? "text" : "password"}
-                className="form-control"
-                placeholder="Password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-              <span className="input-group-text password-toggle" onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
-                {showPassword ? 
-                  <i className="fa-regular fa-eye-slash"></i> : 
-                  <i className="fa-regular fa-eye"></i>
-                }
-              </span>
-            </div>
+        )}
 
-            {error && <p className="text-danger">{error}</p>}
-
-            <button type="submit" className="btn btn-primary w-100 login-btn" disabled={loading}>
-              {loading ? 'Logging in...' : 'Login'}
-            </button>
-          </form>
-        </div>
-      </div>
-      <Footer />
+        <button type="submit" className="btn btn-primary" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
+      </form>
     </div>
   );
 };
