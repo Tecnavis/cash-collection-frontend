@@ -5,9 +5,16 @@ import Cookies from "js-cookie";
 //   import.meta.env.VITE_API_BASE_URL || "https://paycollection-2h8k.onrender.com/api/v1";
 //   import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/v1";
 
+// export const BASE_URL =
+//   import.meta.env.VITE_API_BASE_URL ||
+//   "https://paycollection-2h8k.onrender.com/api/v1"; // fallback for production
+
 export const BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
-  "https://paycollection-2h8k.onrender.com/api/v1"; // fallback for production
+  (window.location.hostname === "localhost"
+    ? "http://127.0.0.1:8000/api/v1"
+    : "https://paycollection-2h8k.onrender.com/api/v1");
+
 
 const api = axios.create({
   baseURL: BASE_URL,
