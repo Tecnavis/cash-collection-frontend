@@ -21,7 +21,7 @@ const LoginContent3 = () => {
                     <form>
                         <div className="input-group mb-25">
                             <span className="input-group-text"><i className="fa-regular fa-user"></i></span>
-                            <input type="text" className="form-control" placeholder="Username or email address"/>
+                            <input type="tel" className="form-control" placeholder="Phone number"/>
                         </div>
                         <div className="input-group mb-20">
                             <span className="input-group-text"><i className="fa-regular fa-lock"></i></span>

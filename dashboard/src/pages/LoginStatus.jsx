@@ -7,4 +7,4 @@ const LoginStatus = () => {
   )
 }
 
-export default LoginStatus
+export default LoginStatus  

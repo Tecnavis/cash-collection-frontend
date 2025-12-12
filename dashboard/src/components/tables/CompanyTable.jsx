@@ -22,17 +22,29 @@ const AllCustomerTable = () => {
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+    // Clear error for this field when user starts typing
     if (["first_name", "last_name", "email", "contact_number", "password"].includes(name)) {
+      setErrors((prevErrors) => {
+        const newErrors = { ...prevErrors };
+        delete newErrors[`user_${name}`];
+        return newErrors;
+      });
       // Update user object separately
       setFormData((prevData) => ({
         ...prevData,
         user: { ...prevData.user, [name]: value },
       }));
     } else {
+      setErrors((prevErrors) => {
+        const newErrors = { ...prevErrors };
+        delete newErrors[name];
+        return newErrors;
+      });
       // Update other fields normally
       setFormData((prevData) => ({
         ...prevData,
@@ -51,7 +63,8 @@ const AllCustomerTable = () => {
       setMessage("Profile ID is required.");
       return false;
     }
-    if (!emailRegex.test(email)) {
+    // Email is optional; validate only when provided
+    if (email && !emailRegex.test(email)) {
       setMessage("Invalid email format.");
       return false;
     }
@@ -65,6 +78,7 @@ const AllCustomerTable = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+    setErrors({});
 
     if (!validateForm()) return;
 
@@ -79,6 +93,7 @@ const AllCustomerTable = () => {
       });
 
       setMessage("Customer profile created successfully!");
+      setErrors({});
       setFormData({
         profile_id: "",
         user: {
@@ -96,8 +111,38 @@ const AllCustomerTable = () => {
 
       setTimeout(() => setMessage(""), 5000);
     } catch (error) {
-      setMessage(error.response?.data?.message || "Error creating customer profile.");
       console.error("API Error:", error.response?.data);
+      
+      // Parse error messages from backend
+      const errorData = error.response?.data;
+      if (errorData?.errors) {
+        const parsedErrors = {};
+        
+        // Flatten nested error structure
+        Object.keys(errorData.errors).forEach(key => {
+          const errorValue = errorData.errors[key];
+          if (typeof errorValue === 'object' && !Array.isArray(errorValue)) {
+            // Nested errors like user.contact_number
+            Object.keys(errorValue).forEach(nestedKey => {
+              const nestedErrors = errorValue[nestedKey];
+              if (Array.isArray(nestedErrors)) {
+                parsedErrors[`${key}_${nestedKey}`] = nestedErrors.join(", ");
+              } else {
+                parsedErrors[`${key}_${nestedKey}`] = nestedErrors;
+              }
+            });
+          } else if (Array.isArray(errorValue)) {
+            parsedErrors[key] = errorValue.join(", ");
+          } else {
+            parsedErrors[key] = errorValue;
+          }
+        });
+        
+        setErrors(parsedErrors);
+        setMessage(errorData.message || "Please fix the errors below and try again.");
+      } else {
+        setMessage(errorData?.message || "Error creating customer profile. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -117,7 +162,15 @@ const AllCustomerTable = () => {
                 <div className="row g-3">
                   <div className="col-sm-6">
                     <label className="form-label">Profile ID</label>
-                    <input type="text" name="profile_id" className="form-control" value={formData.profile_id} onChange={handleChange} required />
+                    <input 
+                      type="text" 
+                      name="profile_id" 
+                      className={`form-control ${errors.profile_id ? 'is-invalid' : ''}`} 
+                      value={formData.profile_id} 
+                      onChange={handleChange} 
+                      required 
+                    />
+                    {errors.profile_id && <div className="text-danger small">{errors.profile_id}</div>}
                   </div>
                   <div className="col-sm-6">
                     <label className="form-label">Shop Name</label>
@@ -125,27 +178,66 @@ const AllCustomerTable = () => {
                   </div>
                   <div className="col-sm-6">
                     <label className="form-label">First Name</label>
-                    <input type="text" name="first_name" className="form-control" value={formData.user.first_name} onChange={handleChange} required />
+                    <input 
+                      type="text" 
+                      name="first_name" 
+                      className={`form-control ${errors.user_first_name ? 'is-invalid' : ''}`} 
+                      value={formData.user.first_name} 
+                      onChange={handleChange} 
+                      required 
+                    />
+                    {errors.user_first_name && <div className="text-danger small">{errors.user_first_name}</div>}
                   </div>
                   <div className="col-sm-6">
                     <label className="form-label">Last Name</label>
-                    <input type="text" name="last_name" className="form-control" value={formData.user.last_name} onChange={handleChange} required />
+                    <input 
+                      type="text" 
+                      name="last_name" 
+                      className={`form-control ${errors.user_last_name ? 'is-invalid' : ''}`} 
+                      value={formData.user.last_name} 
+                      onChange={handleChange} 
+                      required 
+                    />
+                    {errors.user_last_name && <div className="text-danger small">{errors.user_last_name}</div>}
                   </div>
                   <div className="col-sm-6">
-                    <label className="form-label">Contact Number</label>
-                    <input type="tel" name="contact_number" className="form-control" value={formData.user.contact_number} onChange={handleChange} required />
+                    <label className="form-label">Contact Number <span className="text-danger">*</span></label>
+                    <input 
+                      type="tel" 
+                      name="contact_number" 
+                      className={`form-control ${errors.user_contact_number ? 'is-invalid' : ''}`} 
+                      value={formData.user.contact_number} 
+                      onChange={handleChange} 
+                      required 
+                    />
+                    {errors.user_contact_number && <div className="text-danger small">{errors.user_contact_number}</div>}
                   </div>
                   <div className="col-sm-6">
                     <label className="form-label">Secondary Contact</label>
                     <input type="tel" name="secondary_contact" className="form-control" value={formData.secondary_contact} onChange={handleChange} />
                   </div>
                   <div className="col-sm-6">
-                    <label className="form-label">Email</label>
-                    <input type="email" name="email" className="form-control" value={formData.user.email} onChange={handleChange} required />
+                    <label className="form-label">Email (Optional)</label>
+                    <input 
+                      type="email" 
+                      name="email" 
+                      className={`form-control ${errors.user_email ? 'is-invalid' : ''}`} 
+                      value={formData.user.email} 
+                      onChange={handleChange} 
+                    />
+                    {errors.user_email && <div className="text-danger small">{errors.user_email}</div>}
                   </div>
                   <div className="col-sm-6">
                     <label className="form-label">Password</label>
-                    <input type="password" name="password" className="form-control" value={formData.user.password} onChange={handleChange} required />
+                    <input 
+                      type="password" 
+                      name="password" 
+                      className={`form-control ${errors.user_password ? 'is-invalid' : ''}`} 
+                      value={formData.user.password} 
+                      onChange={handleChange} 
+                      required 
+                    />
+                    {errors.user_password && <div className="text-danger small">{errors.user_password}</div>}
                   </div>
                   <div className="col-sm-12">
                     <label className="form-label">Address</label>
@@ -162,7 +254,16 @@ const AllCustomerTable = () => {
                   </button>
                 </div>
               </form>
-              {message && <p className="mt-2 text-info">{message}</p>}
+              {message && (
+                <div className={`mt-3 alert ${message.includes("successfully") ? "alert-success" : "alert-danger"}`}>
+                  {message}
+                </div>
+              )}
+              {errors.non_field_errors && (
+                <div className="mt-2 alert alert-danger">
+                  {errors.non_field_errors}
+                </div>
+              )}
             </div>
           </div>
         </div>

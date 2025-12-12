@@ -22,9 +22,9 @@ const LoginContent = () => {
                 <i className="fa-regular fa-user"></i>
               </span>
               <input
-                type="text"
+                type="tel"
                 className="form-control"
-                placeholder="Username or email address"
+                placeholder="Phone number"
               />
             </div>
             

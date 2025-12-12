@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Footer from '../footer/Footer';
+import { Link } from 'react-router-dom';
 import Cookies from 'js-cookie';
-import api, { BASE_URL } from '../../api';   // use axios instance + BASE_URL
+import { BASE_URL } from "../../api";
 
 const LoginContent2 = () => {
+  
   const [formData, setFormData] = useState({
-    email: '',
+    phone_number: '',
     password: '',
   });
   const [loading, setLoading] = useState(false);
@@ -21,7 +23,7 @@ const LoginContent2 = () => {
 
   // Toggle password visibility
   const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
+    setShowPassword(!showPassword);
   };
 
   const handleSubmit = async (e) => {
@@ -30,60 +32,51 @@ const LoginContent2 = () => {
     setError('');
 
     try {
-      // Use axios instance (respects BASE_URL + interceptors)
-      const response = await api.post('/users/login/', {
-        email: formData.email,
-        password: formData.password,
-      });
+        const response = await fetch(`${BASE_URL}/users/login/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+        });
+        const data = await response.json();
 
-      const data = response.data;
+        if (response.ok) {
+            // Store tokens and role in cookies
+            Cookies.set('access_token', data.access_token, { expires: 1 });
+            Cookies.set('refresh_token', data.refresh_token, { expires: 7 });
+            Cookies.set('user_role', data.role.toUpperCase(), { expires: 1 });
+            Cookies.set('user_id', data.user_id, { expires: 1 });
 
-      // Store tokens and role in cookies
-      Cookies.set('access_token', data.access_token, { expires: 1 });
-      Cookies.set('refresh_token', data.refresh_token, { expires: 7 });
-      Cookies.set('user_role', data.role ? data.role.toUpperCase() : '', { expires: 1 });
-      Cookies.set('user_id', data.user_id, { expires: 1 });
+            // Trigger authentication event
+            window.dispatchEvent(new Event('auth-change'));
 
-      // Trigger authentication event
-      window.dispatchEvent(new Event('auth-change'));
+            // Determine where to navigate based on user role
+            let redirectPath = '/dashboard';  // Default redirect
 
-      // Determine where to navigate based on user role
-      let redirectPath = '/dashboard'; // Default redirect
-      const roleUpper = (data.role || '').toUpperCase();
+            if (data.role.toUpperCase() === 'ADMIN') {
+                redirectPath = '/dash';
+            } else if (data.role.toUpperCase() === 'SUOER_ADMIN') {
+                redirectPath = '/dash';
+            } else if (data.role.toUpperCase() === 'STAFF') {
+                redirectPath = '/hrmDashboard';
+            }
+            else if (data.role.toUpperCase() === 'CUSTOMER') {
+                redirectPath = '/customerDashboard';  
+            }
 
-      if (roleUpper === 'ADMIN') {
-        redirectPath = '/dash';
-      } else if (roleUpper === 'SUPER_ADMIN') {
-        // fixed typo SUOER_ADMIN -> SUPER_ADMIN
-        redirectPath = '/dash';
-      } else if (roleUpper === 'STAFF') {
-        redirectPath = '/hrmDashboard';
-      } else if (roleUpper === 'CUSTOMER') {
-        redirectPath = '/customerDashboard';
-      }
-
-      // Small delay to ensure cookies are set before navigation
-      setTimeout(() => {
-        navigate(redirectPath);
-      }, 100);
-    } catch (err) {
-      console.error('Login error:', err);
-
-      if (err.response && err.response.data) {
-        // If backend sent JSON
-        const data = err.response.data;
-        if (typeof data === 'string') {
-          setError(data);
-        } else if (data.detail) {
-          setError(data.detail);
+            // Small delay to ensure cookies are properly set before navigation
+            setTimeout(() => {
+                navigate(redirectPath);
+            }, 100);
         } else {
-          setError('Invalid login credentials');
+            setError(data.detail || 'Invalid login credentials');
         }
-      } else {
+    } catch (err) {
         setError('Something went wrong. Please try again.');
-      }
+        console.error("Login error:", err);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
@@ -94,36 +87,27 @@ const LoginContent2 = () => {
         <div className="top d-flex justify-content-between align-items-center">
           <div className="logo">
             {/* <img src="assets/images/neo1.png" alt="Logo" /> */}
-            <img
-              src="assets/images/neo1.png"
-              alt="Logo"
-              className="img-fluid"
-              style={{ maxWidth: '100px' }}
-            />
+            <img src="assets/images/neo1.png" alt="Logo" className="img-fluid" style={{ maxWidth: '100px' }} />
           </div>
-          <Link to="/">
-            <i className="fa-duotone fa-house-chimney"></i>
-          </Link>
+          <Link to="/"><i className="fa-duotone fa-house-chimney"></i></Link>
         </div>
         <div className="bottom">
           <form onSubmit={handleSubmit}>
             <div className="input-group mb-30">
               <input
-                type="text"
+                type="tel"
                 className="form-control"
-                placeholder="Email address"
-                name="email"
-                value={formData.email}
+                placeholder="Phone number"
+                name="phone_number"
+                value={formData.phone_number}
                 onChange={handleChange}
                 required
               />
-              <span className="input-group-text">
-                <i className="fa-regular fa-user"></i>
-              </span>
+              <span className="input-group-text"><i className="fa-regular fa-phone"></i></span>
             </div>
             <div className="input-group mb-20">
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 className="form-control"
                 placeholder="Password"
                 name="password"
@@ -131,26 +115,17 @@ const LoginContent2 = () => {
                 onChange={handleChange}
                 required
               />
-              <span
-                className="input-group-text password-toggle"
-                onClick={togglePasswordVisibility}
-                style={{ cursor: 'pointer' }}
-              >
-                {showPassword ? (
-                  <i className="fa-regular fa-eye-slash"></i>
-                ) : (
+              <span className="input-group-text password-toggle" onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
+                {showPassword ? 
+                  <i className="fa-regular fa-eye-slash"></i> : 
                   <i className="fa-regular fa-eye"></i>
-                )}
+                }
               </span>
             </div>
 
             {error && <p className="text-danger">{error}</p>}
 
-            <button
-              type="submit"
-              className="btn btn-primary w-100 login-btn"
-              disabled={loading}
-            >
+            <button type="submit" className="btn btn-primary w-100 login-btn" disabled={loading}>
               {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
