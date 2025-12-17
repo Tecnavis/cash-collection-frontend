@@ -189,7 +189,7 @@ const PricingTableSection = ({plans}) => {
           <td></td>
         </tr>
         <tr>
-          <td>Digiboard Payments Card-present rate</td>
+          <td>Neo Payments Card-present rate</td>
           <td>2.6%+ 10c</td>
           <td>2.6%+ 10c</td>
           <td>2.6%+ 10c</td>
