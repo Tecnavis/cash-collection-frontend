@@ -1,139 +1,48 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Footer from '../footer/Footer';
-import { Link } from 'react-router-dom';
-import Cookies from 'js-cookie';
-import { BASE_URL } from "../../api";
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError('');
 
-const LoginContent2 = () => {
-  
-  const [formData, setFormData] = useState({
-    phone_number: '',
-    password: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
+  try {
+    const response = await fetch(`${BASE_URL}/users/login/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: formData.phone_number, // ✅ FIX
+        password: formData.password,
+      }),
+    });
 
-  // Handle input change
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    const data = await response.json();
 
-  // Toggle password visibility
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+    if (response.ok) {
+      Cookies.set('access_token', data.access_token, { expires: 1 });
+      Cookies.set('refresh_token', data.refresh_token, { expires: 7 });
+      Cookies.set('user_role', data.role.toUpperCase(), { expires: 1 });
+      Cookies.set('user_id', data.user_id, { expires: 1 });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+      window.dispatchEvent(new Event('auth-change'));
 
-    try {
-        const response = await fetch(`${BASE_URL}/users/login/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-        });
-        const data = await response.json();
+      let redirectPath = '/dashboard';
 
-        if (response.ok) {
-            // Store tokens and role in cookies
-            Cookies.set('access_token', data.access_token, { expires: 1 });
-            Cookies.set('refresh_token', data.refresh_token, { expires: 7 });
-            Cookies.set('user_role', data.role.toUpperCase(), { expires: 1 });
-            Cookies.set('user_id', data.user_id, { expires: 1 });
+      if (data.role.toUpperCase() === 'ADMIN' || data.role.toUpperCase() === 'SUPER_ADMIN') {
+        redirectPath = '/dash';
+      } else if (data.role.toUpperCase() === 'STAFF') {
+        redirectPath = '/hrmDashboard';
+      } else if (data.role.toUpperCase() === 'CUSTOMER') {
+        redirectPath = '/customerDashboard';
+      }
 
-            // Trigger authentication event
-            window.dispatchEvent(new Event('auth-change'));
-
-            // Determine where to navigate based on user role
-            let redirectPath = '/dashboard';  // Default redirect
-
-            if (data.role.toUpperCase() === 'ADMIN') {
-                redirectPath = '/dash';
-            } else if (data.role.toUpperCase() === 'SUOER_ADMIN') {
-                redirectPath = '/dash';
-            } else if (data.role.toUpperCase() === 'STAFF') {
-                redirectPath = '/hrmDashboard';
-            }
-            else if (data.role.toUpperCase() === 'CUSTOMER') {
-                redirectPath = '/customerDashboard';  
-            }
-
-            // Small delay to ensure cookies are properly set before navigation
-            setTimeout(() => {
-                navigate(redirectPath);
-            }, 100);
-        } else {
-            setError(data.detail || 'Invalid login credentials');
-        }
-    } catch (err) {
-        setError('Something went wrong. Please try again.');
-        console.error("Login error:", err);
-    } finally {
-        setLoading(false);
+      setTimeout(() => navigate(redirectPath), 100);
+    } else {
+      setError(data.detail || 'Invalid login credentials');
     }
-  };
-
-  return (
-    <div className="main-content login-panel login-panel-2">
-      <h3 className="panel-title">Login</h3>
-      <div className="login-body login-body-2">
-        <div className="top d-flex justify-content-between align-items-center">
-          <div className="logo">
-            {/* <img src="assets/images/neo1.png" alt="Logo" /> */}
-            <img src="assets/images/neo1.png" alt="Logo" className="img-fluid" style={{ maxWidth: '100px' }} />
-          </div>
-          <Link to="/"><i className="fa-duotone fa-house-chimney"></i></Link>
-        </div>
-        <div className="bottom">
-          <form onSubmit={handleSubmit}>
-            <div className="input-group mb-30">
-              <input
-                type="tel"
-                className="form-control"
-                placeholder="Phone number"
-                name="phone_number"
-                value={formData.phone_number}
-                onChange={handleChange}
-                required
-              />
-              <span className="input-group-text"><i className="fa-regular fa-phone"></i></span>
-            </div>
-            <div className="input-group mb-20">
-              <input
-                type={showPassword ? "text" : "password"}
-                className="form-control"
-                placeholder="Password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-              <span className="input-group-text password-toggle" onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
-                {showPassword ? 
-                  <i className="fa-regular fa-eye-slash"></i> : 
-                  <i className="fa-regular fa-eye"></i>
-                }
-              </span>
-            </div>
-
-            {error && <p className="text-danger">{error}</p>}
-
-            <button type="submit" className="btn btn-primary w-100 login-btn" disabled={loading}>
-              {loading ? 'Logging in...' : 'Login'}
-            </button>
-          </form>
-        </div>
-      </div>
-      <Footer />
-    </div>
-  );
+  } catch (err) {
+    console.error("Login error:", err);
+    setError('Something went wrong. Please try again.');
+  } finally {
+    setLoading(false);
+  }
 };
-
-export default LoginContent2;
