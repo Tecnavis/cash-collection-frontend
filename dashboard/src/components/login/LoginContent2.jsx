@@ -38,7 +38,7 @@ const handleSubmit = async (e) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username: formData.phone_number, // ✅ FIX
+        username: formData.phone_number, // 🔥 IMPORTANT
         password: formData.password,
       }),
     });
@@ -55,21 +55,22 @@ const handleSubmit = async (e) => {
 
       let redirectPath = '/dashboard';
 
-      if (data.role.toUpperCase() === 'ADMIN' || data.role.toUpperCase() === 'SUPER_ADMIN') {
+      const role = data.role.toUpperCase();
+      if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
         redirectPath = '/dash';
-      } else if (data.role.toUpperCase() === 'STAFF') {
+      } else if (role === 'STAFF') {
         redirectPath = '/hrmDashboard';
-      } else if (data.role.toUpperCase() === 'CUSTOMER') {
+      } else if (role === 'CUSTOMER') {
         redirectPath = '/customerDashboard';
       }
 
-      setTimeout(() => navigate(redirectPath), 100);
+      navigate(redirectPath);
     } else {
-      setError(data.detail || 'Invalid login credentials');
+      setError(data.detail || 'Invalid phone number or password');
     }
   } catch (err) {
-    console.error("Login error:", err);
     setError('Something went wrong. Please try again.');
+    console.error(err);
   } finally {
     setLoading(false);
   }
