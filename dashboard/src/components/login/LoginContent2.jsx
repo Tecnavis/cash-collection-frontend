@@ -38,8 +38,8 @@ const handleSubmit = async (e) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username: formData.phone_number, // 🔥 IMPORTANT
-        password: formData.password,
+       phone: e.phone_number,   // ✅ FIXED
+    password: e.password
       }),
     });
 
