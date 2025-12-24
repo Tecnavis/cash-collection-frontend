@@ -6,7 +6,7 @@ import Cookies from 'js-cookie';
 import { BASE_URL } from "../../api";
 
 const LoginContent2 = () => {
-  
+
   const [formData, setFormData] = useState({
     phone_number: '',
     password: '',
@@ -26,55 +26,55 @@ const LoginContent2 = () => {
     setShowPassword(!showPassword);
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-  try {
-    const response = await fetch(`${BASE_URL}/users/login/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-       phone: e.phone_number,   // ✅ FIXED
-    password: e.password
-      }),
-    });
+    try {
+      const response = await fetch(`${BASE_URL}/users/login/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone_number: formData.phone_number,
+          password: formData.password
+        }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (response.ok) {
-      Cookies.set('access_token', data.access_token, { expires: 1 });
-      Cookies.set('refresh_token', data.refresh_token, { expires: 7 });
-      Cookies.set('user_role', data.role.toUpperCase(), { expires: 1 });
-      Cookies.set('user_id', data.user_id, { expires: 1 });
+      if (response.ok) {
+        Cookies.set('access_token', data.access_token, { expires: 1 });
+        Cookies.set('refresh_token', data.refresh_token, { expires: 7 });
+        Cookies.set('user_role', data.role.toUpperCase(), { expires: 1 });
+        Cookies.set('user_id', data.user_id, { expires: 1 });
 
-      window.dispatchEvent(new Event('auth-change'));
+        window.dispatchEvent(new Event('auth-change'));
 
-      let redirectPath = '/dashboard';
+        let redirectPath = '/dashboard';
 
-      const role = data.role.toUpperCase();
-      if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
-        redirectPath = '/dash';
-      } else if (role === 'STAFF') {
-        redirectPath = '/hrmDashboard';
-      } else if (role === 'CUSTOMER') {
-        redirectPath = '/customerDashboard';
+        const role = data.role.toUpperCase();
+        if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+          redirectPath = '/dash';
+        } else if (role === 'STAFF') {
+          redirectPath = '/hrmDashboard';
+        } else if (role === 'CUSTOMER') {
+          redirectPath = '/customerDashboard';
+        }
+
+        navigate(redirectPath);
+      } else {
+        setError(data.detail || 'Invalid phone number or password');
       }
-
-      navigate(redirectPath);
-    } else {
-      setError(data.detail || 'Invalid phone number or password');
+    } catch (err) {
+      setError('Something went wrong. Please try again.');
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setError('Something went wrong. Please try again.');
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
 
   return (
@@ -113,8 +113,8 @@ const handleSubmit = async (e) => {
                 required
               />
               <span className="input-group-text password-toggle" onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
-                {showPassword ? 
-                  <i className="fa-regular fa-eye-slash"></i> : 
+                {showPassword ?
+                  <i className="fa-regular fa-eye-slash"></i> :
                   <i className="fa-regular fa-eye"></i>
                 }
               </span>
